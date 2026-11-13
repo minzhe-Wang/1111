@@ -7,12 +7,14 @@ from typing import Literal
 
 import httpx
 import jwt
+from cache import cached, history, remember, metrics
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import JSON, Column, Integer, MetaData, String, Table, create_engine, insert, select, update
+from sqlalchemy.exc import IntegrityError
 
 load_dotenv()
 root = Path(__file__).parent
@@ -23,9 +25,28 @@ records = Table("office_records", metadata, Column("id", Integer, primary_key=Tr
                 Column("owner", String(50), nullable=False), Column("kind", String(20), nullable=False),
                 Column("status", String(20), nullable=False), Column("data", JSON, nullable=False))
 metadata.create_all(engine)
+users = Table("office_users", metadata, Column("username", String(50), primary_key=True),
+              Column("password_hash", String(255), nullable=False), Column("role", String(20), nullable=False))
+resources = Table("office_resources", metadata, Column("name", String(100), primary_key=True))
+metadata.create_all(engine)
 rooms = {"海棠厅": 12, "梧桐厅": 24, "松柏厅": 40}
 accounts = {"employee": ("employee", os.getenv("OFFICE_EMPLOYEE_PASSWORD", "OfficeDemo1")),
             "admin": ("admin", os.getenv("OFFICE_ADMIN_PASSWORD", "OfficeDemo2"))}
+
+
+def password_hash(password, salt=None):
+    salt = salt or secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), 200000).hex()
+    return salt + ":" + digest
+
+
+with engine.begin() as conn:
+    for name, (role, password) in accounts.items():
+        if conn.execute(select(users).where(users.c.username == name)).first() is None:
+            conn.execute(insert(users).values(username=name, role=role, password_hash=password_hash(password)))
+    for room in rooms:
+        if conn.execute(select(resources).where(resources.c.name == room)).first() is None:
+            conn.execute(insert(resources).values(name=room))
 app = FastAPI(title="AI 智能行政办公平台")
 bearer = HTTPBearer()
 
@@ -38,14 +59,16 @@ def user(credentials: HTTPAuthorizationCredentials = Depends(bearer)):
 
 
 def admin(name: str = Depends(user)):
-    if name != "admin":
+    with engine.connect() as conn:
+        role = conn.execute(select(users.c.role).where(users.c.username == name)).scalar()
+    if role != "admin":
         raise HTTPException(403, "需要管理员权限")
     return name
 
 
 class Login(BaseModel):
-    username: str
-    password: str
+    username: str = Field(pattern=r"^[a-zA-Z0-9_]{3,50}$")
+    password: str = Field(min_length=8, max_length=128)
 
 
 class Entry(BaseModel):
@@ -87,18 +110,30 @@ def home():
 
 @app.get("/api/v1/rooms")
 def room_list(name: str = Depends(user)):
-    return rooms
+    return cached("office:room-catalog:v1", lambda: rooms)
 
 
 @app.post("/api/v1/login")
 def login(body: Login):
-    account = accounts.get(body.username)
+    with engine.connect() as conn:
+        account = conn.execute(select(users).where(users.c.username == body.username)).mappings().first()
     if account is None or not secrets.compare_digest(
-        hashlib.sha256(body.password.encode()).digest(), hashlib.sha256(account[1].encode()).digest()
+        password_hash(body.password, account["password_hash"].split(":")[0]), account["password_hash"]
     ):
         raise HTTPException(401, "账号或密码错误")
     return {"token": jwt.encode({"sub": body.username, "exp": datetime.now(timezone.utc) + timedelta(hours=4)},
-                                secret, algorithm="HS256"), "role": account[0]}
+                                secret, algorithm="HS256"), "role": account["role"]}
+
+
+@app.post("/api/v1/register", status_code=201)
+def register(body: Login):
+    try:
+        with engine.begin() as conn:
+            conn.execute(insert(users).values(username=body.username, role="employee",
+                                             password_hash=password_hash(body.password)))
+    except IntegrityError as exc:
+        raise HTTPException(409, "账号已存在") from exc
+    return {"username": body.username}
 
 
 def list_for(name, kind=None):
@@ -122,12 +157,15 @@ def create(body: Entry, name: str = Depends(user)):
     with engine.begin() as conn:
         if engine.dialect.name == "sqlite":
             conn.exec_driver_sql("BEGIN IMMEDIATE")
+        if engine.dialect.name == "mysql":
+            lock_query = select(users.c.username).where(users.c.username == name)
+            if body.kind == "room":
+                lock_query = select(resources.c.name).where(resources.c.name == body.detail)
+            conn.execute(lock_query.with_for_update()).first()
         if body.kind in ("schedule", "room"):
-            query = select(records).where(records.c.kind == body.kind, records.c.status != "rejected")
+            query = select(records).where(records.c.kind == body.kind, records.c.status.in_(["active", "pending", "approved"]))
             if body.kind == "schedule":
                 query = query.where(records.c.owner == name)
-            if engine.dialect.name == "mysql":
-                query = query.with_for_update()
             for row in conn.execute(query).mappings():
                 old = row["data"]
                 same_resource = body.kind == "schedule" or old["detail"] == body.detail
@@ -149,6 +187,16 @@ def decide(entry_id: int, body: Decision, name: str = Depends(admin)):
         if result.rowcount != 1:
             raise HTTPException(409, "仅可审核待处理申请")
     return {"status": body.status}
+
+
+@app.post("/api/v1/records/{entry_id}/archive")
+def archive(entry_id: int, name: str = Depends(admin)):
+    with engine.begin() as conn:
+        result = conn.execute(update(records).where(records.c.id == entry_id, records.c.kind == "travel",
+                              records.c.status.in_(["approved", "rejected"])).values(status="archived"))
+        if result.rowcount != 1:
+            raise HTTPException(409, "仅可归档已审核的出差申请")
+    return {"status": "archived"}
 
 
 def match_room(name, intent, message):
@@ -181,18 +229,24 @@ def offline_intent(message):
 
 @app.post("/api/v1/agent/chat")
 def chat(body: Chat, name: str = Depends(user)):
+    previous = history(name)
+    message = body.message
+    if previous and message.strip().rstrip("人").isdigit():
+        message = "找一间能容纳 " + message.strip().rstrip("人") + " 人的会议室"
     key = os.getenv("DEEPSEEK_API_KEY")
     mode = "offline"
-    intent = offline_intent(body.message)
+    intent = offline_intent(message)
     if key:
         try:
-            response = httpx.post("https://api.deepseek.com/chat/completions", timeout=8,
+            response = httpx.post("https://api.deepseek.com/chat/completions", timeout=25,
                 headers={"Authorization": f"Bearer {key}"}, json={
-                    "model": os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+                    "model": os.getenv("DEEPSEEK_MODEL", "deepseek-flash"),
+                    "thinking": {"type": "disabled"},
+                    "max_tokens": 500,
                     "response_format": {"type": "json_object"},
                     "messages": [
                         {"role": "system", "content": "你是办公意图分类器。仅输出 JSON，字段 skill 和 capacity。skill 限 schedule_list（查日程）、room_match（按人数找会议室）、travel_draft（出差草稿）、unknown。capacity 为 1 至 1000 的整数，缺省为 1。禁止写操作。"},
-                        {"role": "user", "content": body.message}]})
+                        *previous, {"role": "user", "content": message}]})
             response.raise_for_status()
             intent = Intent.model_validate_json(response.json()["choices"][0]["message"]["content"])
             mode = "deepseek"
@@ -200,10 +254,56 @@ def chat(body: Chat, name: str = Depends(user)):
             mode = "fallback"
     handler = skills.get(intent.skill)
     items = handler(name, intent, body.message) if handler else ["支持查询日程、按人数找会议室、生成出差表单草稿。"]
+    if intent.skill == "room_match" and intent.capacity == 1:
+        items = ["请问需要容纳多少人？可以回复人数，例如 20 人。"]
+    remember(name, "user", body.message)
+    remember(name, "assistant", "\n".join(items))
     with engine.begin() as conn:
         conn.execute(insert(records).values(owner=name, kind="chat", status=mode,
                     data={"message": body.message, "skill": intent.skill, "items": items}))
     return {"mode": mode, "skill": intent.skill, "items": items}
+
+
+@app.get("/api/v1/admin/cache")
+def cache_metrics(name: str = Depends(admin)):
+    return metrics
+
+
+@app.delete("/api/v1/records/{entry_id}")
+def cancel(entry_id: int, name: str = Depends(user)):
+    with engine.begin() as conn:
+        row = conn.execute(select(records).where(records.c.id == entry_id)).mappings().first()
+        if row is None or row["owner"] != name:
+            raise HTTPException(404, "记录不存在")
+        if row["status"] not in ("active", "pending"):
+            raise HTTPException(409, "仅可删除日程或撤回待审核申请")
+        result = conn.execute(update(records).where(records.c.id == entry_id, records.c.status == row["status"])
+                              .values(status="cancelled"))
+        if result.rowcount != 1:
+            raise HTTPException(409, "记录状态已变化")
+    return {"status": "cancelled"}
+
+
+@app.put("/api/v1/records/{entry_id}")
+def edit_schedule(entry_id: int, body: Entry, name: str = Depends(user)):
+    if body.kind != "schedule":
+        raise HTTPException(422, "此接口仅用于修改日程")
+    data = body.model_dump(mode="json")
+    with engine.begin() as conn:
+        if engine.dialect.name == "sqlite":
+            conn.exec_driver_sql("BEGIN IMMEDIATE")
+        if engine.dialect.name == "mysql":
+            conn.execute(select(users.c.username).where(users.c.username == name).with_for_update()).first()
+        rows = list(conn.execute(select(records).where(records.c.owner == name, records.c.kind == "schedule").with_for_update()).mappings())
+        target = next((row for row in rows if row["id"] == entry_id and row["status"] == "active"), None)
+        if target is None:
+            raise HTTPException(404, "日程不存在")
+        for row in rows:
+            old = row["data"]
+            if row["id"] != entry_id and row["status"] == "active" and old["start"] < data["end"] and data["start"] < old["end"]:
+                raise HTTPException(409, "日程时间冲突")
+        conn.execute(update(records).where(records.c.id == entry_id).values(data=data))
+    return {"id": entry_id}
 
 
 @app.get("/api/v1/admin/logs")

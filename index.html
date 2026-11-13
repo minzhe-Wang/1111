@@ -15,7 +15,7 @@
 <script>
 const $ = id => document.getElementById(id);
 let token = '', role = '';
-const names = {schedule:'日程',room:'会议室',travel:'出差',active:'已登记',pending:'待审批',approved:'已通过',rejected:'已驳回',offline:'离线规则',deepseek:'DeepSeek',fallback:'模型异常，使用离线规则'};
+const names = {schedule:'日程',room:'会议室',travel:'出差',active:'已登记',pending:'待审批',approved:'已通过',rejected:'已驳回',cancelled:'已撤回',archived:'已归档',offline:'离线规则',deepseek:'DeepSeek',fallback:'模型异常，使用离线规则'};
 async function api(path, method='GET', body){
  const res=await fetch('/api/v1'+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});
  const data=await res.json();
@@ -41,6 +41,23 @@ async function loadRecords(){
     button.onclick=()=>{const remark=prompt('填写审批意见',status==='approved'?'同意':'请补充说明');if(remark!==null)run(async()=>{await api('/records/'+row.id,'PATCH',{status,remark});await loadRecords();},'审批已保存');};
   }
   $('records').append(item);
+  if(role==='employee'&&row.kind==='schedule'&&row.status==='active'){
+    const edit=document.createElement('button');edit.textContent='修改日程';item.append(edit);
+    edit.onclick=()=>{
+      const title=prompt('日程标题',d.title);if(title===null)return;
+      const start=prompt('开始时间，例如 2026-11-20T09:00',d.start);if(start===null)return;
+      const end=prompt('结束时间',d.end);if(end===null)return;
+      run(async()=>{await api('/records/'+row.id,'PUT',{...d,title,start,end});await loadRecords();},'日程已更新');
+    };
+  }
+  if(role==='admin'&&row.kind==='travel'&&['approved','rejected'].includes(row.status)){
+    const archive=document.createElement('button');archive.textContent='归档';item.append(archive);
+    archive.onclick=()=>run(async()=>{await api('/records/'+row.id+'/archive','POST');await loadRecords();},'已归档');
+  }
+  if(role==='employee'&&['active','pending'].includes(row.status)){
+    const cancel=document.createElement('button');cancel.textContent=row.kind==='schedule'?'删除日程':'撤回申请';item.append(cancel);
+    cancel.onclick=()=>run(async()=>{await api('/records/'+row.id,'DELETE');await loadRecords();},'操作成功');
+  }
  }
  if(!rows.length)$('records').textContent='暂无记录';
 }

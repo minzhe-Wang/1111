@@ -5,3 +5,4 @@ pymysql
 pyjwt
 python-dotenv
 httpx
+redis

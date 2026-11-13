@@ -1,0 +1,40 @@
+{
+  "passed": [
+    "login employee",
+    "login admin",
+    "/",
+    "/admin.html",
+    "/mobile.html",
+    "register",
+    "login test_1794560383",
+    "permission",
+    "concurrent booking",
+    "ownership",
+    "withdraw",
+    "create schedule",
+    "edit",
+    "delete",
+    "create travel",
+    "approval",
+    "repeat approval",
+    "archive",
+    "live agent 帮我找会议室",
+    "live agent 20人",
+    "context",
+    "cache tiers",
+    "100 request load"
+  ],
+  "cache": {
+    "local_hit": 1,
+    "redis_hit": 1,
+    "database_read": 1,
+    "redis_failure": 0
+  },
+  "load": {
+    "requests": 100,
+    "concurrency": 10,
+    "errors": 0,
+    "median_ms": 67.54,
+    "p95_ms": 200.43
+  }
+}
