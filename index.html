@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 智能行政办公平台</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef3f6;color:#112e3b;font:16px "Microsoft YaHei",sans-serif}header{background:#102e3b;color:white;padding:42px max(5vw,20px)}h1{margin:8px 0;font-size:clamp(28px,4vw,48px)}main{width:min(1080px,92vw);margin:24px auto}section{background:white;padding:24px;margin-bottom:18px;border:1px solid #d6e3e9;border-radius:14px}form{display:flex;flex-wrap:wrap;gap:12px;align-items:end}label{display:grid;gap:6px}input,select,button{font:inherit;padding:10px;border:1px solid #a9bbc2;border-radius:6px}button{color:white;background:#006758;border-color:#006758;cursor:pointer}p{line-height:1.6}li{padding:12px 0;border-bottom:1px solid #d6e3e9}li button{margin:6px}#status{font-weight:bold;color:#006758}pre{white-space:pre-wrap;overflow-wrap:anywhere}[hidden]{display:none!important}
+</style>
+<header><div>软件开发综合课程设计</div><h1>AI 智能行政办公平台</h1></header>
+<main>
+<section><form id="login"><label>演示身份<select name="username"><option>employee</option><option>admin</option></select></label><label>密码<input name="password" type="password" value="OfficeDemo1" required></label><button>登录</button></form><p id="status" role="status">请选择身份并登录</p></section>
+<div id="workspace" hidden>
+<section><h2>提交办公事项</h2><form id="entry"><label>类型<select name="kind"><option value="schedule">个人日程</option><option value="room">会议室预约</option><option value="travel">出差申请</option></select></label><label>标题或事由<input name="title" maxlength="100" required></label><label>开始<input type="datetime-local" name="start" required></label><label>结束<input type="datetime-local" name="end" required></label><label id="detailLabel">备注<input name="detail" maxlength="255"></label><label id="roomLabel" hidden>会议室<select name="room"><option>海棠厅</option><option>梧桐厅</option><option>松柏厅</option></select></label><button>提交</button></form></section>
+<section><h2>办公助手</h2><form id="chat"><label>你的指令<input name="message" size="34" maxlength="300" value="找一间能容纳 20 人的会议室" required></label><button>发送</button></form><pre id="reply"></pre></section>
+<section><h2>办公记录</h2><button id="refresh">刷新记录</button><ul id="records"></ul></section>
+<section id="logSection" hidden><h2>Agent 日志</h2><button id="showLogs">刷新日志</button><pre id="logs"></pre></section>
+</div></main>
+<script>
+const $ = id => document.getElementById(id);
+let token = '', role = '';
+const names = {schedule:'日程',room:'会议室',travel:'出差',active:'已登记',pending:'待审批',approved:'已通过',rejected:'已驳回',offline:'离线规则',deepseek:'DeepSeek',fallback:'模型异常，使用离线规则'};
+async function api(path, method='GET', body){
+ const res=await fetch('/api/v1'+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});
+ const data=await res.json();
+ if(!res.ok) throw Error(typeof data.detail==='string'?data.detail:(data.detail?.[0]?.msg??'请求失败'));
+ return data;
+}
+async function run(action, success){
+ try { await action(); $('status').textContent=success; } catch(error){ $('status').textContent=error.message; $('status').scrollIntoView({block:'nearest'}); }
+}
+function bind(id, action, success){ $(id).onsubmit=e=>{e.preventDefault(); const form=e.currentTarget; run(()=>action(Object.fromEntries(new FormData(form))),success);};}
+$('login').elements.username.onchange=e=>$('login').elements.password.value=e.target.value==='admin'?'OfficeDemo2':'OfficeDemo1';
+$('entry').elements.kind.onchange=e=>{ const kind=e.target.value; $('detailLabel').hidden=kind==='room'; $('roomLabel').hidden=kind!=='room'; };
+bind('login',async data=>{const session=await api('/login','POST',data); token=session.token;role=session.role;$('workspace').hidden=false;$('logSection').hidden=role!=='admin';$('reply').textContent='';$('logs').textContent='';await loadRecords();},'登录成功');
+bind('entry',async data=>{if(data.kind==='room')data.detail=data.room;delete data.room;await api('/records','POST',data);await loadRecords();},'提交成功');
+bind('chat',async data=>{const reply=await api('/agent/chat','POST',data);$('reply').textContent=names[reply.mode]+' · '+reply.skill+'\n'+reply.items.join('\n');},'助手已返回结果');
+async function loadRecords(){
+ const rows=await api('/records');$('records').replaceChildren();
+ for(const row of rows){
+  const item=document.createElement('li');const d=row.data;
+  item.textContent=names[row.kind]+' · '+d.title+' · '+names[row.status]+' · '+d.start.replace('T',' ')+' 至 '+d.end.replace('T',' ')+' '+d.detail+(d.remark?' · 审批意见：'+d.remark:'');
+  if(role==='admin'&&row.status==='pending')for(const status of ['approved','rejected']){
+    const button=document.createElement('button');button.textContent=names[status];item.append(button);
+    button.onclick=()=>{const remark=prompt('填写审批意见',status==='approved'?'同意':'请补充说明');if(remark!==null)run(async()=>{await api('/records/'+row.id,'PATCH',{status,remark});await loadRecords();},'审批已保存');};
+  }
+  $('records').append(item);
+ }
+ if(!rows.length)$('records').textContent='暂无记录';
+}
+$('refresh').onclick=()=>run(loadRecords,'记录已刷新');
+$('showLogs').onclick=()=>run(async()=>{$('logs').textContent=(await api('/admin/logs')).map(row=>row.owner+' · '+names[row.status]+' · '+row.data.skill+' · '+row.data.message).join('\n')||'暂无日志';},'日志已刷新');
+</script></html>
