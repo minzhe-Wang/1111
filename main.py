@@ -228,6 +228,7 @@ class Intent(BaseModel):
 # A single lock is intentional for this single-instance course deployment, not a scaling claim.
 from cache import guard as cache_guard, context_available, context_key
 from agent_tasks import read_task, write_task, task_key, merge_task, prepare_task, image_summary, resolve_action, is_new_request
+from assistant_rules import requested_kind, day_bounds, time_bounds, query_kind
 
 BEIJING = timezone(timedelta(hours=8))
 
@@ -879,6 +880,21 @@ def chat(body: Chat, name: str = Depends(user)):
     previous = history(name)
     pending = read_task(name)
     message = body.message
+    if previous and '容纳多少人' in previous[-1]['content'] and re.fullmatch(r'\d+\s*(?:人)?',message.strip()):
+        message='找会议室，'+re.search(r'\d+',message)[0]+'人'
+    direct = assistant_query(name, message)
+    if direct is not None:
+        remember(name,'user',message)
+        remember(name,'assistant','\n'.join(direct))
+        return {'mode':'rules','skill':'query','items':direct,'proposal_id':None,
+                'missing_fields':[],'context_available':context_available()}
+    explicit_kind = requested_kind(message)
+    if explicit_kind:
+        previous, pending = [], {}
+        write_task(name,{})
+    if pending and re.fullmatch(r'\s*\d{3,}\s*',message) and any(k in pending.get('missing_fields',[]) for k in ('start','end')):
+        return {'mode':'rules','skill':'clarify','items':['当前正在填写时间，请明确日期和时刻，例如“明天15:00”。不会把数字当作另一类申请。'],
+                'proposal_id':None,'missing_fields':pending.get('missing_fields',[]),'context_available':context_available()}
     if is_new_request(message):
         # Do not show previous task facts to the model for an explicitly new task.
         previous, pending = [], {}
@@ -920,6 +936,17 @@ def chat(body: Chat, name: str = Depends(user)):
             mode = "fallback"
     if body.image and mode != "deepseek":
         intent = Intent(skill="unknown")
+    if mode == 'deepseek' and (explicit_kind or pending):
+        expected = explicit_kind or pending.get('fields',{}).get('kind')
+        predicted = intent.partial.get('kind')
+        if not explicit_kind and predicted and predicted != expected:
+            return {'mode':'rules','skill':'clarify','items':['当前申请尚未填写完成，请补充：'+ '、'.join(pending.get('missing_fields',[]))+'。如需切换，请明确说明新的申请类型。'],
+                    'proposal_id':None,'missing_fields':pending.get('missing_fields',[]),'context_available':context_available()}
+        intent.skill='create_entry'
+        intent.partial['kind']=expected
+        if explicit_kind and explicit_kind!='expense' and not re.search(r'\d{1,2}(?::|：|点|时)',message):
+            intent.partial.pop('start',None)
+            intent.partial.pop('end',None)
     handler = skills.get(intent.skill)
     items = handler(name, intent, body.message) if handler else ["支持查询日程、按人数找会议室、出差/用车/请假/报销表单草稿。"]
     if intent.skill == "room_match" and intent.capacity is None:
@@ -967,3 +994,30 @@ def chat(body: Chat, name: str = Depends(user)):
                     data={"message": "助手调用（私人内容不记录）", "skill": intent.skill, "items": [], "image_supplied": bool(body.image), "time": datetime.now(timezone.utc).isoformat()}))
     return {"mode": mode, "skill": intent.skill, "items": items, "proposal_id": proposal_id,
             "missing_fields": missing_fields, "context_available": task_saved and context_available()}
+
+
+def assistant_query(name, message):
+    kind=query_kind(message)
+    if not kind:return None
+    try:
+        if kind=='schedule':
+            bounds=day_bounds(message,now_local())
+            if not bounds:return ['请明确查询日期，例如“查明天的日程”或“查2026-11-20的日程”。']
+            rows=[r for r in list_for(name,'schedule') if r['owner']==name and r['status']=='active'
+                  and datetime.fromisoformat(r['data']['start'])<bounds[1]
+                  and datetime.fromisoformat(r['data']['end'])>bounds[0]]
+            return [bounds[0].strftime('%Y-%m-%d')+' 的个人日程：'] + ([r['data']['title']+' '+r['data']['start'].replace('T',' ')+' 至 '+r['data']['end'].replace('T',' ') for r in rows] or ['当天没有日程。'])
+        catalog=room_list(name)
+        if kind=='capacity':
+            count=re.search(r'(\d+)\s*(?:个)?人',message)
+            return match_room(name,Intent(skill='room_match',capacity=int(count[1]) if count else None),message)
+        bounds=time_bounds(message,now_local())
+        room=next((r for r in sorted(catalog,key=len,reverse=True) if r in message),None)
+        if not room:return ['请提供启用的会议室名称，例如海棠厅，并说明查询日期和起止时间。']
+        if not bounds:return ['请补充完整日期和起止时间，例如“明天14:00–15:00，'+room+'有人占用吗”。']
+        with engine.connect() as conn:
+            rows=conn.execute(select(records.c.data).where(records.c.kind=='room',records.c.status.in_(['pending','approved']))).scalars()
+            occupied=any(d.get('detail')==room and datetime.fromisoformat(d['start'])<bounds[1] and datetime.fromisoformat(d['end'])>bounds[0] for d in rows)
+        return [room+' '+bounds[0].strftime('%Y-%m-%d %H:%M')+'–'+bounds[1].strftime('%H:%M')+(' 已占用（含待审批申请）。' if occupied else ' 当前空闲；提交预约时会再次校验。')]
+    except (ValueError,TypeError):
+        return ['日期、人数或时间格式无效，请明确日期和起止时刻，人数需在1至1000之间。']

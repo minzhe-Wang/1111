@@ -1,0 +1,115 @@
+{
+  "date": "2026-11-19T04:49:13.089093+00:00",
+  "passed": true,
+  "turns": [
+    {
+      "message": "请给1个人找会议室",
+      "response": {
+        "mode": "rules",
+        "skill": "query",
+        "items": [
+          "V13验收厅03a9e（6 人）",
+          "V13验收厅b2a78（6 人）",
+          "V13验收厅f6a5b（6 人）",
+          "V13验收厅fd540（6 人）",
+          "松柏厅（40 人）",
+          "梧桐厅（24 人）",
+          "海棠厅（12 人）"
+        ],
+        "proposal_id": null,
+        "missing_fields": [],
+        "context_available": true
+      }
+    },
+    {
+      "message": "查一下我明天的日程",
+      "response": {
+        "mode": "rules",
+        "skill": "query",
+        "items": [
+          "2026-11-20 的个人日程：",
+          "当天没有日程。"
+        ],
+        "proposal_id": null,
+        "missing_fields": [],
+        "context_available": true
+      }
+    },
+    {
+      "message": "找一间能容纳20人的会议室",
+      "response": {
+        "mode": "rules",
+        "skill": "query",
+        "items": [
+          "松柏厅（40 人）",
+          "梧桐厅（24 人）"
+        ],
+        "proposal_id": null,
+        "missing_fields": [],
+        "context_available": true
+      }
+    },
+    {
+      "message": "帮我起草明天去上海的出差申请",
+      "response": {
+        "mode": "deepseek",
+        "skill": "create_entry",
+        "items": [
+          "请补充：开始时间、结束时间。已提供的信息会保留。"
+        ],
+        "proposal_id": null,
+        "missing_fields": [
+          "start",
+          "end"
+        ],
+        "context_available": true
+      }
+    },
+    {
+      "message": "1234",
+      "response": {
+        "mode": "rules",
+        "skill": "clarify",
+        "items": [
+          "当前正在填写时间，请明确日期和时刻，例如“明天15:00”。不会把数字当作另一类申请。"
+        ],
+        "proposal_id": null,
+        "missing_fields": [
+          "start",
+          "end"
+        ],
+        "context_available": true
+      }
+    },
+    {
+      "message": "申报金额:123",
+      "response": {
+        "mode": "deepseek",
+        "skill": "create_entry",
+        "items": [
+          "请补充：开始时间、结束时间。已提供的信息会保留。"
+        ],
+        "proposal_id": null,
+        "missing_fields": [
+          "start",
+          "end"
+        ],
+        "context_available": true
+      }
+    },
+    {
+      "message": "明天14:00--15:00,海棠厅有人占用吗",
+      "response": {
+        "mode": "rules",
+        "skill": "query",
+        "items": [
+          "海棠厅 2026-11-20 14:00–15:00 当前空闲；提交预约时会再次校验。"
+        ],
+        "proposal_id": null,
+        "missing_fields": [],
+        "context_available": true
+      }
+    }
+  ],
+  "business_writes": 0
+}

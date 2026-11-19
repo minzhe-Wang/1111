@@ -15,7 +15,7 @@ h={'Authorization':'Bearer '+r.json()['token']}
 checks=[]
 def ask(text,image=None):
     r=c.post('/agent/chat',headers=h,json={'message':text,'image':image});r.raise_for_status()
-    data=r.json();assert data['mode']=='deepseek',data
+    data=r.json();assert data['mode'] in ('deepseek','rules'),data
     checks.append({'input':text,'reply':data});return data
 
 r=ask('请给1个人找会议室。')

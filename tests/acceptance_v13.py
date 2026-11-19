@@ -239,6 +239,33 @@ class Acceptance(unittest.TestCase):
             self.assertEqual(len(sent),2)
             self.assertNotIn('old.png',sent[0]['content'])
 
+    def test_14_date_filtered_queries(self):
+        self.create({**self.entry(),'title':'日期筛选目标'})
+        result=m.assistant_query('alice','查2040-01-01的日程')
+        self.assertTrue(any('日期筛选目标' in s for s in result))
+        self.assertNotIn('日期筛选目标',' '.join(m.assistant_query('alice','查2040-01-02的日程')))
+        self.assertNotIn('日期筛选目标',' '.join(m.assistant_query('bobby','查2040-01-01的日程')))
+        self.assertTrue(all('6 人' not in s for s in m.assistant_query('alice','找一间能容纳20人的会议室')))
+
+    def test_15_availability_queries(self):
+        self.create(self.entry(kind='room',detail='海棠厅',passengers=2))
+        self.assertIn('已占用',' '.join(m.assistant_query('alice','2040-01-01 09:30--10:30 海棠厅有人占用吗')))
+        self.assertIn('当前空闲',' '.join(m.assistant_query('alice','2040-01-01 10:00--11:00 海棠厅有人占用吗')))
+        self.assertIn('补充',' '.join(m.assistant_query('alice','海棠厅有人占用吗')))
+
+    def test_16_travel_cannot_become_expense(self):
+        from agent_tasks import read_task
+        self.call('DELETE','/agent/context')
+        first={'skill':'create_entry','entry':{'kind':'travel','title':'上海出差','destination':'上海','start':'2040-01-01T09:00:00'}}
+        wrong={'skill':'expense_draft','entry':{'kind':'expense','amount':'123','title':'出租车费','category':'交通'}}
+        with patch.dict(os.environ,{'DEEPSEEK_API_KEY':'fake'}),patch.object(m.httpx,'post',side_effect=[self.model_reply(first),self.model_reply(wrong)]):
+            r=self.call('POST','/agent/chat',{'message':'帮我起草明天去上海的出差申请'})
+            self.assertIn('start',r.json()['missing_fields']);self.assertIn('end',r.json()['missing_fields'])
+            r=self.call('POST','/agent/chat',{'message':'1234'})
+            self.assertEqual(r.json()['skill'],'clarify')
+            r=self.call('POST','/agent/chat',{'message':'申报金额123'})
+            self.assertFalse(r.json()['proposal_id']);self.assertEqual(read_task('alice')['fields']['kind'],'travel')
+
 if __name__=='__main__':
     suite=unittest.defaultTestLoader.loadTestsFromTestCase(Acceptance)
     result=unittest.TextTestRunner(verbosity=2).run(suite)

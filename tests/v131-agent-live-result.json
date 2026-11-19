@@ -1,11 +1,11 @@
 {
-  "date": "2026-11-19T03:19:27.693142+00:00",
+  "date": "2026-11-19T04:49:19.031479+00:00",
   "checks": [
     {
       "input": "请给1个人找会议室。",
       "reply": {
-        "mode": "deepseek",
-        "skill": "room_match",
+        "mode": "rules",
+        "skill": "query",
         "items": [
           "V13验收厅03a9e（6 人）",
           "V13验收厅b2a78（6 人）",
@@ -24,7 +24,7 @@
       "input": "开始一笔新报销，事由是客户拜访打车费，类别交通。票据金额没有填写，请向我询问金额。",
       "reply": {
         "mode": "deepseek",
-        "skill": "expense_draft",
+        "skill": "create_entry",
         "items": [
           "请补充：申报金额。已提供的信息会保留。"
         ],
@@ -39,7 +39,7 @@
       "input": "金额是38.50元。",
       "reply": {
         "mode": "deepseek",
-        "skill": "expense_draft",
+        "skill": "create_entry",
         "items": [
           "请核对后点击确认提交。",
           "客户拜访打车费",
@@ -47,7 +47,7 @@
           "金额：38.5",
           "票据：1 张"
         ],
-        "proposal_id": "738e88a0dd248b027cc3ca16eec092173313e88e7a349f1f",
+        "proposal_id": "18d2b7780d32cfaed025daab5ba15ba7727f137ebe320fc1",
         "missing_fields": [],
         "context_available": true
       }
@@ -56,7 +56,7 @@
       "input": "再开一笔新的报销，事由是买办公用品，类别办公。",
       "reply": {
         "mode": "deepseek",
-        "skill": "expense_draft",
+        "skill": "create_entry",
         "items": [
           "请补充：申报金额、票据图片。已提供的信息会保留。"
         ],
@@ -73,7 +73,7 @@
   "business_records_without_confirmation": 0,
   "new_task_does_not_reuse_receipt": true,
   "source_sha256": {
-    "main.py": "cbe374316002ffb3c863eca6e7e04b07f72bb3e1b70d5ec60c15ba2892e7c649",
+    "main.py": "95149a8d2f0eda2ed191789bcb5ec3b41273c7cdc32e770c81075ccb247f645f",
     "agent_tasks.py": "8c2d886615a0bd29e8a8158c1de8aa3cc608f1912d52262917e111d649387e27",
     "cache.py": "3ff3cb0e9b9748937e31b90802b859de300da800faac0bd46937da4e25d6fa16"
   }

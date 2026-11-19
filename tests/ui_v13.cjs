@@ -44,7 +44,9 @@ const fs=require('fs');
  // Real model and real persistence, edit and confirmation endpoints (small API charge).
  await page.setViewportSize({width:1024,height:1000});
  await page.locator('#chatForm [name=message]').fill('创建个人日程，标题浏览器草稿验收，2043年1月1日9点到10点。');
- await page.locator('#sendChat').click();await page.locator('.proposal').first().waitFor({timeout:40000});
+ await page.locator('#sendChat').click();
+ try { await page.locator('.proposal').first().waitFor({timeout:40000}); }
+ catch(error) { console.error(await page.locator('#chatLog').innerText());await browser.close();throw error; }
  const draft=page.locator('.proposal').last();
  await draft.locator('input').first().fill('浏览器修改后的草稿');
  if(!(await draft.getByRole('button',{name:'确认提交',exact:true}).isDisabled()))throw Error('Unreviewed edit confirm allowed');

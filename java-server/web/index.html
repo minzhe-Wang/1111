@@ -262,7 +262,7 @@ textarea{resize:vertical;min-height:62px}
 const $ = id => document.getElementById(id);
 const KIND = {schedule:'日程', room:'会议室', travel:'出差', vehicle:'用车', leave:'假条', expense:'报销'};
 const STATUS = {active:'已登记', pending:'待审批', approved:'已通过', rejected:'已驳回', cancelled:'已撤回', archived:'已归档'};
-const MODE = {deepseek:'DeepSeek 在线', fallback:'模型异常 · 离线规则', offline:'离线规则'};
+const MODE = {deepseek:'AI解析 · 请核对结果', rules:'系统查询与校验', fallback:'模型异常 · 离线规则', offline:'离线规则'};
 const state = {
   token: sessionStorage.getItem('zx.token') || '',
   role: sessionStorage.getItem('zx.role') || '',
@@ -762,7 +762,7 @@ $('chatForm').onsubmit = async event => {
     addBubble((reply.items || []).join('\n'),false,MODE[reply.mode]);
     if (!reply.context_available) addBubble('上下文暂不可用，本次按单轮处理；可以继续使用表单。',false);
     if (reply.proposal_id) await showProposal(reply.proposal_id);
-    if (reply.mode === 'deepseek') {
+    if (reply.mode === 'deepseek' || reply.mode === 'rules') {
       form.elements.message.value=''; $('imageInput').value='';
       $('imageHint').textContent='可附加会议通知截图，PNG / JPEG / WebP，不超过 2 MB';
     }
@@ -772,6 +772,8 @@ $('chatForm').onsubmit = async event => {
 $('clearChat').onclick = async () => {
   try {
     await api('/agent/context','DELETE');
+    $('chatForm').reset();
+    $('imageHint').textContent='可附加会议通知截图，PNG / JPEG / WebP，不超过 2 MB';
     $('chatLog').querySelectorAll('.bubble').forEach(el=>el.remove());
     addBubble('已开始新对话，待确认草稿仍保留。',false);
   } catch(error) { toast(error.message,true); }

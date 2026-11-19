@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-11-19T03:16:12.847230+00:00",
-  "groups": 13,
+  "timestamp": "2026-11-19T04:48:04.397030+00:00",
+  "groups": 16,
   "failures": 0,
   "errors": 0,
   "success": true,
-  "source_sha256": "cbe374316002ffb3c863eca6e7e04b07f72bb3e1b70d5ec60c15ba2892e7c649",
+  "source_sha256": "95149a8d2f0eda2ed191789bcb5ec3b41273c7cdc32e770c81075ccb247f645f",
   "scope": "isolated SQLite; concurrency, privacy, boundaries, receipts, recovery, draft versions, Redis context when available"
 }
