@@ -4,3 +4,6 @@ __pycache__/
 .venv/
 
 java-server/target/
+
+receipts/
+tests/*.png

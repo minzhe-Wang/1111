@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class ApiController {
-    private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
+    private final HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+        .connectTimeout(Duration.ofSeconds(3)).build();
     private final String upstream = System.getenv().getOrDefault("OFFICE_DATA_URL", "http://127.0.0.1:8001");
 
     @RequestMapping("/api/v1/**")
@@ -20,7 +21,7 @@ public class ApiController {
             String query = request.getQueryString();
             URI uri = URI.create(upstream + request.getRequestURI() + (query == null ? "" : "?" + query));
             HttpRequest.Builder builder = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(35));
-            for (String header : new String[]{"Authorization", "Content-Type"}) {
+            for (String header : new String[]{"Authorization", "Content-Type", "Idempotency-Key"}) {
                 String value = request.getHeader(header);
                 if (value != null) builder.header(header, value);
             }

@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-11-19 11:11:43",
+  "passed": [
+    "login v13_2bf96815",
+    "login admin",
+    "Java create room",
+    "Java invalidates Python local cache",
+    "plate directory",
+    "MariaDB concurrent resource lock",
+    "approve",
+    "cancel approved before start",
+    "Java forwards idempotency key",
+    "admin schedule isolation",
+    "Java summary available",
+    "real text model",
+    "live draft edit",
+    "live draft confirmation",
+    "real multimodal model",
+    "100 HTTP requests successful",
+    "HTTP P95 within 300ms",
+    "100 directory reads <=2 DB loads"
+  ],
+  "user": "v13_2bf96815",
+  "room": "V13验收厅b2a78",
+  "plate": "苏V6E542",
+  "performance": {
+    "requests": 100,
+    "concurrency": 10,
+    "p95_ms": 91.44,
+    "median_ms": 50.22
+  },
+  "scope": "Java 8080 + MariaDB + Redis + real model; test data retained",
+  "source_sha256": {
+    "main.py": "cbe374316002ffb3c863eca6e7e04b07f72bb3e1b70d5ec60c15ba2892e7c649",
+    "cache.py": "3ff3cb0e9b9748937e31b90802b859de300da800faac0bd46937da4e25d6fa16",
+    "java-server/src/main/java/cn/zhixing/AdminController.java": "0f2db20e491fa034b831abc6d8bf79e69da97fc7a3cc71b7224baf232dfbefd3"
+  },
+  "environment": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+    "user_records": 3,
+    "directory_db_loads": 0
+  }
+}

@@ -1,69 +1,793 @@
 <!doctype html>
-<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 智能行政办公平台</title>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>智行政 · 员工工作台</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#eef3f6;color:#112e3b;font:16px "Microsoft YaHei",sans-serif}header{background:#102e3b;color:white;padding:42px max(5vw,20px)}h1{margin:8px 0;font-size:clamp(28px,4vw,48px)}main{width:min(1080px,92vw);margin:24px auto}section{background:white;padding:24px;margin-bottom:18px;border:1px solid #d6e3e9;border-radius:14px}form{display:flex;flex-wrap:wrap;gap:12px;align-items:end}label{display:grid;gap:6px}input,select,button{font:inherit;padding:10px;border:1px solid #a9bbc2;border-radius:6px}button{color:white;background:#006758;border-color:#006758;cursor:pointer}p{line-height:1.6}li{padding:12px 0;border-bottom:1px solid #d6e3e9}li button{margin:6px}#status{font-weight:bold;color:#006758}pre{white-space:pre-wrap;overflow-wrap:anywhere}[hidden]{display:none!important}
+:root{--navy:#123340;--navy-2:#1b4757;--teal:#0d7a63;--teal-2:#0a6150;--teal-3:#e6f3ef;--bg:#f1f5f6;--card:#fff;--line:#dae5e8;--muted:#5d757e;--warn:#a86a12;--warn-bg:#fdf3e3;--bad:#a83f37;--bad-bg:#fbebea;--ok:#0d7a63;--ok-bg:#e7f4ef;--shadow:0 10px 30px rgba(18,51,64,.06)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:#153039;font:15px/1.65 "Microsoft YaHei","PingFang SC",sans-serif}
+a{color:var(--teal);text-decoration:none}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:12px max(4vw,18px);background:var(--navy);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.5px}
+.mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#19a183,#0d7a63);display:grid;place-items:center;font-size:15px}
+.brand small{display:block;font-weight:400;font-size:12px;color:#b9cfd6;letter-spacing:0}
+.spacer{flex:1}
+.topbar a{color:#cfe2e6;font-size:14px}
+.userchip{display:flex;align-items:center;gap:8px;font-size:13px;color:#d8e8ec;background:rgba(255,255,255,.1);padding:6px 10px;border-radius:20px}
+.userchip b{color:#fff;font-weight:600}
+.btn{border:1px solid transparent;border-radius:8px;padding:9px 15px;font:inherit;font-size:14px;cursor:pointer;background:var(--teal);color:#fff;transition:.15s}
+.btn:hover{background:var(--teal-2)}
+.btn.ghost{background:#fff;color:var(--navy);border-color:var(--line)}
+.btn.ghost:hover{background:#eef4f5}
+.btn.small{padding:5px 11px;font-size:13px;border-radius:6px}
+.btn.danger{background:#fff;color:var(--bad);border-color:#e6c4c1}
+.btn.danger:hover{background:var(--bad-bg)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.page{width:min(1180px,94vw);margin:20px auto 44px}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:6px 0 16px}
+.hero h1{margin:0 0 4px;font-size:clamp(22px,2.6vw,30px);color:var(--navy);letter-spacing:.5px}
+.hero p{margin:0;color:var(--muted);font-size:14px}
+.hero .stamp{font-size:12px;color:#7d939b;text-align:right;white-space:nowrap}
+.grid{display:grid;grid-template-columns:1.25fr .95fr;gap:18px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:20px}
+.card h2{margin:0 0 4px;font-size:16px;color:var(--navy);display:flex;align-items:center;gap:8px}
+.card h2 em{font-style:normal;font-size:12px;font-weight:400;color:#8aa0a7}
+.card .sub{margin:0 0 14px;color:var(--muted);font-size:13px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#edf3f4;border-radius:10px;padding:5px;margin-bottom:16px}
+.seg button{border:0;background:transparent;border-radius:7px;padding:9px 6px;font:inherit;font-size:14px;color:#45606a;cursor:pointer}
+.seg button.on{background:#fff;color:var(--teal-2);font-weight:600;box-shadow:0 1px 4px rgba(18,51,64,.12)}
+.field{display:grid;gap:6px;margin-bottom:12px}
+.field label{font-size:13px;color:#45606a}
+.field .req{color:var(--bad)}
+input,select,textarea{font:inherit;font-size:14px;color:#153039;width:100%;padding:10px 11px;border:1px solid #b9cdd2;border-radius:8px;background:#fff;outline:none;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,122,99,.12)}
+textarea{resize:vertical;min-height:62px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.thumbs img{width:58px;height:58px;object-fit:cover;border-radius:6px;border:1px solid var(--line);cursor:zoom-in}
+.hint{font-size:12px;color:#7d939b}
+.formfoot{display:flex;align-items:center;gap:12px;margin-top:4px}
+.formfoot .btn{padding:10px 22px}
+.formfoot .msg{font-size:13px;color:var(--teal)}
+.formfoot .msg.err{color:var(--bad)}
+.assist{display:flex;flex-direction:column;min-height:520px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 12px}
+.chips button{border:1px solid #cfe0e3;background:#f7fbfb;color:#2b4d58;border-radius:999px;padding:5px 11px;font:inherit;font-size:12px;cursor:pointer}
+.chips button:hover{border-color:var(--teal);color:var(--teal-2)}
+.log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 10px;max-height:420px}
+.bubble{max-width:88%;padding:10px 13px;border-radius:12px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.bubble.bot{background:#f2f7f8;border:1px solid #e0eaec;color:#274853;align-self:flex-start;border-top-left-radius:4px}
+.bubble.me{background:var(--teal-3);border:1px solid #cfe8e1;color:#124f42;align-self:flex-end;border-top-right-radius:4px}
+.bubble .tag{display:inline-block;font-size:11px;color:#5d757e;background:#e6eef0;border-radius:4px;padding:1px 6px;margin-bottom:5px}
+.bubble.empty{color:#82989f;font-style:normal}
+.proposal{border:1px solid #e7cd9d;background:#fffaf0;border-radius:12px;padding:12px;margin-top:8px}
+.proposal h4{margin:0 0 6px;font-size:13px;color:#8a5a10}
+.proposal pre{margin:0 0 8px;font:13px/1.6 inherit;color:#4b3a1d;white-space:pre-wrap;overflow-wrap:anywhere}
+.chatimg{font-size:12px;color:var(--muted);background:#f1f6f7;border-radius:6px;padding:4px 8px;display:inline-block}
+.chatbar{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
+.chatbar textarea{min-height:54px}
+.chatbar .row{display:flex;gap:8px;align-items:center}
+.chatbar .row input[type=file]{flex:1;border:0;padding:0;font-size:12px;background:transparent}
+.chatbar .row .btn{white-space:nowrap}
+.records{margin-top:18px}
+.rec-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.filters{display:flex;flex-wrap:wrap;gap:7px;margin-left:auto}
+.filters button{border:1px solid #cfe0e3;background:#fff;color:#46626c;border-radius:999px;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer}
+.filters button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.list{display:grid;gap:12px;margin-top:14px}
+.record{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff;display:grid;gap:8px}
+.record:hover{border-color:#c6d8dc;box-shadow:0 6px 18px rgba(18,51,64,.05)}
+.record .line{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.kind{font-size:12px;color:#2b5d6a;background:#eaf2f4;border-radius:5px;padding:2px 8px}
+.status{font-size:12px;border-radius:5px;padding:2px 8px;border:1px solid transparent}
+.s-active,.s-approved{color:var(--ok);background:var(--ok-bg);border-color:#c9e5db}
+.s-pending{color:var(--warn);background:var(--warn-bg);border-color:#eed9b3}
+.s-rejected{color:var(--bad);background:var(--bad-bg);border-color:#eccac7}
+.s-cancelled,.s-archived{color:#61767e;background:#eef2f3;border-color:#dde6e8}
+.record h3{margin:0;font-size:15px;color:var(--navy);font-weight:600}
+.record .meta{font-size:13px;color:#4c6771}
+.record .meta span{margin-right:14px}
+.record .remark{font-size:13px;color:#7a5a20;background:#fdf7ea;border-left:3px solid #e3c27f;padding:6px 10px;border-radius:0 6px 6px 0}
+.record .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.empty{text-align:center;color:#8ba0a7;font-size:13px;padding:26px 0}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);background:var(--navy);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:86vw}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:#8c3a33}
+.mask{position:fixed;inset:0;background:rgba(12,32,40,.45);display:grid;place-items:center;z-index:50;padding:20px}
+.modal{width:min(460px,94vw);background:#fff;border-radius:14px;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+.modal h3{margin:0 0 4px;font-size:16px;color:var(--navy)}
+.modal .sub{margin:0 0 14px;font-size:12px;color:var(--muted)}
+.modal .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.login{min-height:100vh;display:grid;place-items:center;background:radial-gradient(1200px 600px at 50% -10%,#d9ece8 0%,#f1f5f6 55%)}
+.login .box{width:min(430px,92vw);background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 60px rgba(18,51,64,.12);padding:28px}
+.login .mark{width:44px;height:44px;font-size:20px;margin-bottom:12px}
+.login h1{margin:0 0 4px;font-size:24px;color:var(--navy)}
+.login p{margin:0 0 18px;font-size:13px;color:var(--muted)}
+.demo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.demo button{border:1px solid #d3e1e4;background:#f8fbfb;border-radius:9px;padding:10px;text-align:left;cursor:pointer;font:inherit}
+.demo button:hover{border-color:var(--teal)}
+.demo b{display:block;font-size:13px;color:var(--navy)}
+.demo span{font-size:12px;color:var(--muted)}
+.login .msg{min-height:20px;font-size:13px;color:var(--bad);margin-top:10px}
+@media (max-width:900px){.grid{grid-template-columns:1fr}.hero{flex-direction:column;align-items:flex-start}.hero .stamp{display:none}.assist{min-height:auto}.two{grid-template-columns:1fr}.filters{margin-left:0}}
+@media (max-width:560px){.page{width:94vw}.topbar{padding:10px 14px}.brand small{display:none}.card{padding:16px}}
+@media(max-width:600px){.topbar{flex-wrap:wrap;gap:8px}.userchip{max-width:100%;overflow-wrap:anywhere}.card,.grid>*{min-width:0}.proposal input,.proposal select{min-width:0}}
 </style>
-<header><div>软件开发综合课程设计</div><h1>智行政 · 员工工作台</h1></header>
-<main><nav style="margin-bottom:20px"><a href="/">员工工作台</a>　<a href="/admin.html">管理工作台</a>　<a href="/mobile.html">移动端</a></nav>
-<section><form id="login"><label>演示身份<select name="username"><option>employee</option><option>admin</option></select></label><label>密码<input name="password" type="password" value="OfficeDemo1" required></label><button>登录</button><button type="button" id="register">注册员工账号</button></form><p id="status" role="status">请选择身份并登录</p></section>
-<div id="workspace" hidden>
-<section><h2>提交办公事项</h2><form id="entry"><label>类型<select name="kind"><option value="schedule">个人日程</option><option value="room">会议室预约</option><option value="travel">出差申请</option></select></label><label>标题或事由<input name="title" maxlength="100" required></label><label>开始<input type="datetime-local" name="start" required></label><label>结束<input type="datetime-local" name="end" required></label><label id="detailLabel">备注<input name="detail" maxlength="255"></label><label id="roomLabel" hidden>会议室<select name="room"><option>海棠厅</option><option>梧桐厅</option><option>松柏厅</option></select></label><button>提交</button></form></section>
-<section><h2>办公助手</h2><form id="chat"><label>你的指令<input name="message" size="34" maxlength="300" value="找一间能容纳 20 人的会议室" required></label><button>发送</button></form><pre id="reply"></pre></section>
-<section><h2>办公记录</h2><button id="refresh">刷新记录</button><ul id="records"></ul></section>
-<section id="logSection" hidden><h2>Agent 日志</h2><button id="showLogs">刷新日志</button><pre id="logs"></pre></section>
-</div></main>
+</head>
+<body>
+
+<div id="loginView" class="login">
+  <div class="box">
+    <div class="mark">智</div>
+    <h1>智行政 · 员工工作台</h1>
+    <p>日程、会议室、出差、用车、假条与报销，一个入口完成。</p>
+    <div class="demo">
+      <button type="button" data-user="employee" data-pass="OfficeDemo1"><b>员工演示</b><span>employee</span></button>
+      <button type="button" data-user="admin" data-pass="OfficeDemo2"><b>管理员演示</b><span>admin</span></button>
+    </div>
+    <form id="loginForm">
+      <div class="field"><label>用户名</label><input name="username" value="employee" autocomplete="username" required></div>
+      <div class="field"><label>密码</label><input name="password" type="password" value="OfficeDemo1" autocomplete="current-password" required></div>
+      <button class="btn" style="width:100%;padding:11px">登录</button>
+    </form>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <div class="topbar">
+    <div class="brand"><div class="mark">智</div><div>智行政<small>AI 智能行政办公平台</small></div></div>
+    <span class="spacer"></span>
+    <a href="/admin.html">管理工作台</a>
+    <a href="/mobile.html">移动端</a>
+    <div class="userchip">当前：<b id="whoami">-</b><span id="rolechip"></span></div>
+    <button class="btn ghost small" id="logout">退出</button>
+  </div>
+
+  <div class="page">
+    <div class="hero">
+      <div>
+        <h1 id="greet">你好，今天要处理什么？</h1>
+        <p>提交事项后由管理员审批，助手会在写入前请你确认。</p>
+      </div>
+      <div class="stamp" id="clock"></div>
+    </div>
+
+    <div id="adminBanner" class="card" hidden style="margin-bottom:16px;border-color:#e7cd9d;background:#fffaf0">
+      <p style="margin:0;font-size:13px;color:#7a5a20">当前为管理员账号。审批、归档、会议室维护请前往 <a href="/admin.html">管理工作台</a>，本页仅可查看记录。</p>
+    </div>
+
+    <div class="grid">
+      <section class="card" id="entryCard">
+        <h2>提交办公事项 <em>表单校验在服务端再执行一次</em></h2>
+        <p class="sub">选择类型后，字段会随类型切换，避免把目的地填进备注。</p>
+        <div class="seg" id="kindSeg">
+          <button type="button" data-kind="schedule" class="on">个人日程</button>
+          <button type="button" data-kind="room">会议室</button>
+          <button type="button" data-kind="travel">出差</button>
+          <button type="button" data-kind="vehicle">用车</button>
+          <button type="button" data-kind="leave">假条</button>
+          <button type="button" data-kind="expense">报销</button>
+        </div>
+        <form id="entryForm">
+          <div class="field"><label id="titleLabel">标题 <span class="req">*</span></label><input name="title" maxlength="100" placeholder="例如：项目周会" required></div>
+          <div class="two" id="timeWrap">
+            <div class="field"><label>开始时间（北京时间） <span class="req">*</span></label><input type="datetime-local" name="start" required></div>
+            <div class="field"><label>结束时间（北京时间） <span class="req">*</span></label><input type="datetime-local" name="end" required></div>
+          </div>
+          <div class="field" id="roomWrap" hidden><label>会议室 <span class="req">*</span></label><select name="room" id="roomSelect"></select><span class="hint" id="roomHint">目录来自服务端，容量变更后自动同步。</span></div>
+          <div class="field" id="passengerWrap" hidden><label id="passengerLabel">人数 <span class="req">*</span></label><input type="number" name="passengers" min="1" max="1000" placeholder="例如：8"><span class="hint" id="passengerHint"></span></div>
+          <div class="field" id="destWrap" hidden><label id="destLabel">目的地 <span class="req">*</span></label><input name="destination" maxlength="255" placeholder="例如：上海浦东"></div>
+          <div class="field" id="vehicleWrap" hidden><label>车辆 <span class="req">*</span></label><select name="vehicle" id="vehicleSelect"></select><span class="hint" id="vehicleHint">提交时校验车牌与时段占用。</span></div>
+          <div class="field" id="leaveWrap" hidden><label>假别 <span class="req">*</span></label><select name="leave_type"><option value="">请选择假别</option><option>事假</option><option>病假</option><option>年假</option><option>调休</option></select></div>
+          <div class="field" id="categoryWrap" hidden><label>费用类别 <span class="req">*</span></label><select name="category"><option value="">请选择类别</option><option>交通</option><option>餐饮</option><option>办公</option><option>住宿</option><option>其他</option></select></div>
+          <div class="field" id="amountWrap" hidden><label>金额（元） <span class="req">*</span></label><input type="number" name="amount" min="0.01" max="50000" step="0.01" placeholder="例如：128.50"></div>
+          <div class="field" id="receiptWrap" hidden><label>票据照片 <span class="req">*</span></label><input type="file" name="receipts" id="receiptInput" accept="image/png,image/jpeg,image/webp" multiple><span class="hint" id="receiptHint">1–3 张，每张不超过 2 MB，提交后可在记录中查看。</span><div class="thumbs" id="receiptPreview"></div></div>
+          <div class="field" id="remarkWrap"><label>备注</label><textarea name="remark" maxlength="255" placeholder="可填写参会人、事由补充等"></textarea></div>
+          <div class="formfoot">
+            <button class="btn" id="submitEntry">提交</button>
+            <span class="msg" id="entryMsg"></span>
+          </div>
+        </form>
+      </section>
+
+      <section class="card assist" id="assistCard">
+        <h2>办公助手 <em>支持文字与会议通知图片</em></h2>
+        <p class="sub">助手只生成待确认事项，点击确认后才会写入记录。</p>
+        <div class="chips">
+          <button type="button" data-q="查一下我明天的日程">查明天日程</button>
+          <button type="button" data-q="找一间能容纳 20 人的会议室">找 20 人会议室</button>
+          <button type="button" data-q="帮我起草明天去上海的出差申请">起草出差申请</button>
+        </div>
+        <div class="log" id="chatLog"><div class="bubble bot empty">可以直接说一句话，例如“明天下午两点找一间能坐 20 人的会议室”。</div></div>
+        <form class="chatbar" id="chatForm">
+          <textarea name="message" maxlength="1000" placeholder="描述你要办的事，越具体越容易一次成功" required></textarea>
+          <div class="row">
+            <input type="file" id="imageInput" accept="image/png,image/jpeg,image/webp">
+            <button class="btn small ghost" type="button" id="clearChat">新对话</button>
+            <button class="btn small" id="sendChat">发送</button>
+          </div>
+          <span class="hint" id="imageHint">可附加会议通知截图，PNG / JPEG / WebP，不超过 2 MB</span>
+        </form>
+      </section>
+    </div>
+
+    <section class="card records">
+      <div class="rec-head">
+        <h2 style="margin:0">办公记录</h2>
+        <span class="hint" id="recCount"></span>
+        <div class="filters" id="filters">
+          <button type="button" data-filter="all" class="on">全部</button>
+          <button type="button" data-filter="pending">待审批</button>
+          <button type="button" data-filter="approved">已通过</button>
+          <button type="button" data-filter="rejected">已驳回</button>
+          <button type="button" data-filter="schedule">日程</button>
+          <button type="button" data-filter="room">会议室</button>
+          <button type="button" data-filter="travel">出差</button>
+          <button type="button" data-filter="vehicle">用车</button>
+          <button type="button" data-filter="leave">假条</button>
+          <button type="button" data-filter="expense">报销</button>
+        </div>
+        <button class="btn small ghost" id="refreshRecords" style="margin-left:8px">刷新</button>
+      </div>
+      <div class="list" id="recordList"></div>
+    </section>
+  </div>
+</div>
+
+<div class="mask" id="editMask" hidden>
+  <div class="modal">
+    <h3>修改日程</h3>
+    <p class="sub">修改会重新执行冲突校验，与其他人日程重叠时会被拒绝。</p>
+    <form id="editForm">
+      <input type="hidden" name="id">
+      <div class="field"><label>标题</label><input name="title" maxlength="100" required></div>
+      <div class="two">
+        <div class="field"><label>开始</label><input type="datetime-local" name="start" required></div>
+        <div class="field"><label>结束</label><input type="datetime-local" name="end" required></div>
+      </div>
+      <div class="field"><label>备注</label><textarea name="detail" maxlength="255"></textarea></div>
+      <div class="foot"><button class="btn ghost" type="button" id="cancelEdit">取消</button><button class="btn">保存</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/record_helpers.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-let token = '', role = '';
-const names = {schedule:'日程',room:'会议室',travel:'出差',active:'已登记',pending:'待审批',approved:'已通过',rejected:'已驳回',cancelled:'已撤回',archived:'已归档',offline:'离线规则',deepseek:'DeepSeek',fallback:'模型异常，使用离线规则'};
-async function api(path, method='GET', body){
- const res=await fetch('/api/v1'+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});
- const data=await res.json();
- if(!res.ok) throw Error(typeof data.detail==='string'?data.detail:(data.detail?.[0]?.msg??'请求失败'));
- return data;
+const KIND = {schedule:'日程', room:'会议室', travel:'出差', vehicle:'用车', leave:'假条', expense:'报销'};
+const STATUS = {active:'已登记', pending:'待审批', approved:'已通过', rejected:'已驳回', cancelled:'已撤回', archived:'已归档'};
+const MODE = {deepseek:'DeepSeek 在线', fallback:'模型异常 · 离线规则', offline:'离线规则'};
+const state = {
+  token: sessionStorage.getItem('zx.token') || '',
+  role: sessionStorage.getItem('zx.role') || '',
+  user: sessionStorage.getItem('zx.user') || '',
+  kind: 'schedule',
+  rooms: [],
+  vehicles: [],
+  rows: [],
+  filter: 'all',
+  proposal: null
+};
+
+function toast(text, bad) {
+  const el = $('toast');
+  el.textContent = text;
+  el.className = 'toast on' + (bad ? ' err' : '');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => { el.className = 'toast'; }, 2600);
 }
-async function run(action, success){
- try { await action(); $('status').textContent=success; } catch(error){ $('status').textContent=error.message; $('status').scrollIntoView({block:'nearest'}); }
+
+async function api(path, method, body, extraHeaders = {}) {
+  const res = await fetch('/api/v1' + path, {
+    method: method || 'GET',
+    headers: Object.assign({'Content-Type': 'application/json'}, extraHeaders, state.token ? {Authorization: 'Bearer ' + state.token} : {}),
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  let data = null;
+  const text = await res.text();
+  if (text) { try { data = JSON.parse(text); } catch (e) { data = null; } }
+  if (res.status === 401) {
+    signOut();
+    throw new Error('登录已失效，请重新登录');
+  }
+  if (!res.ok) {
+    let detail = data && data.detail;
+    if (Array.isArray(detail)) detail = detail[0] && (detail[0].msg || detail[0].message);
+    if (detail && typeof detail === 'object') detail = detail.msg || detail.message || '请求失败';
+    const error = new Error(detail || '请求失败（' + res.status + '）'); error.status = res.status; throw error;
+  }
+  return data;
 }
-function bind(id, action, success){ $(id).onsubmit=e=>{e.preventDefault(); const form=e.currentTarget; run(()=>action(Object.fromEntries(new FormData(form))),success);};}
-$('login').elements.username.onchange=e=>$('login').elements.password.value=e.target.value==='admin'?'OfficeDemo2':'OfficeDemo1';
-$('entry').elements.kind.onchange=e=>{ const kind=e.target.value; $('detailLabel').hidden=kind==='room'; $('roomLabel').hidden=kind!=='room'; };
-bind('login',async data=>{const session=await api('/login','POST',data); token=session.token;role=session.role;$('workspace').hidden=false;$('logSection').hidden=role!=='admin';$('reply').textContent='';$('logs').textContent='';await api('/rooms');await loadRecords();},'登录成功');
-bind('entry',async data=>{if(data.kind==='room')data.detail=data.room;delete data.room;await api('/records','POST',data);await loadRecords();},'提交成功');
-bind('chat',async data=>{const reply=await api('/agent/chat','POST',data);$('reply').textContent=names[reply.mode]+' · '+reply.skill+'\n'+reply.items.join('\n');},'助手已返回结果');
-async function loadRecords(){
- const rows=await api('/records');$('records').replaceChildren();
- for(const row of rows){
-  const item=document.createElement('li');const d=row.data;
-  item.textContent=names[row.kind]+' · '+d.title+' · '+names[row.status]+' · '+d.start.replace('T',' ')+' 至 '+d.end.replace('T',' ')+' '+d.detail+(d.remark?' · 审批意见：'+d.remark:'');
-  if(role==='admin'&&row.status==='pending')for(const status of ['approved','rejected']){
-    const button=document.createElement('button');button.textContent=names[status];item.append(button);
-    button.onclick=()=>{const remark=prompt('填写审批意见',status==='approved'?'同意':'请补充说明');if(remark!==null)run(async()=>{await api('/records/'+row.id,'PATCH',{status,remark});await loadRecords();},'审批已保存');};
-  }
-  $('records').append(item);
-  if(role==='employee'&&row.kind==='schedule'&&row.status==='active'){
-    const edit=document.createElement('button');edit.textContent='修改日程';item.append(edit);
-    edit.onclick=()=>{
-      const title=prompt('日程标题',d.title);if(title===null)return;
-      const start=prompt('开始时间，例如 2026-11-20T09:00',d.start);if(start===null)return;
-      const end=prompt('结束时间',d.end);if(end===null)return;
-      run(async()=>{await api('/records/'+row.id,'PUT',{...d,title,start,end});await loadRecords();},'日程已更新');
-    };
-  }
-  if(role==='admin'&&row.kind==='travel'&&['approved','rejected'].includes(row.status)){
-    const archive=document.createElement('button');archive.textContent='归档';item.append(archive);
-    archive.onclick=()=>run(async()=>{await api('/records/'+row.id+'/archive','POST');await loadRecords();},'已归档');
-  }
-  if(role==='employee'&&['active','pending'].includes(row.status)){
-    const cancel=document.createElement('button');cancel.textContent=row.kind==='schedule'?'删除日程':'撤回申请';item.append(cancel);
-    cancel.onclick=()=>run(async()=>{await api('/records/'+row.id,'DELETE');await loadRecords();},'操作成功');
-  }
- }
- if(!rows.length)$('records').textContent='暂无记录';
+
+function signOut() {
+  state.submission = null;
+  $('entryForm').reset(); $('chatForm').reset(); $('chatLog').replaceChildren();
+  $('receiptPreview').replaceChildren();
+  state.token = ''; state.role = ''; state.user = '';
+  sessionStorage.removeItem('zx.token');
+  sessionStorage.removeItem('zx.role');
+  sessionStorage.removeItem('zx.user');
+  $('app').hidden = true;
+  $('loginView').hidden = false;
 }
-$('refresh').onclick=()=>run(loadRecords,'记录已刷新');
-$('showLogs').onclick=()=>run(async()=>{$('logs').textContent=(await api('/admin/logs')).map(row=>row.owner+' · '+names[row.status]+' · '+row.data.skill+' · '+row.data.message).join('\n')||'暂无日志';},'日志已刷新');
-$('register').onclick=()=>{const username=prompt('新账号（3至50位英文字母、数字或下划线）');if(!username)return;const password=prompt('新密码（至少8位）');if(!password)return;run(async()=>{await api('/register','POST',{username,password});const option=new Option(username,username);$('login').elements.username.add(option);$('login').elements.username.value=username;$('login').elements.password.value=password;},'注册成功，请登录');};
-const cacheButton=document.createElement('button');cacheButton.textContent='查看缓存统计';$('logSection').append(cacheButton);
-cacheButton.onclick=()=>run(async()=>{$('logs').textContent=JSON.stringify(await api('/admin/cache'),null,2);},'缓存统计已刷新');
-</script></html>
+
+function pad(n) { return String(n).padStart(2, '0'); }
+function localInput(date) {
+  return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+}
+function fmtRange(start, end) {
+  const a = (start || '').replace('T', ' ').slice(0, 16);
+  const b = (end || '').replace('T', ' ').slice(0, 16);
+  return a + ' 至 ' + b;
+}
+
+document.querySelectorAll('.demo button').forEach(button => {
+  button.onclick = () => {
+    $('loginForm').elements.username.value = button.dataset.user;
+    $('loginForm').elements.password.value = button.dataset.pass;
+    $('loginMsg').textContent = '';
+  };
+});
+
+$('loginForm').onsubmit = async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector('button');
+  $('loginMsg').textContent = '';
+  button.disabled = true;
+  try {
+    const session = await api('/login', 'POST', {
+      username: form.elements.username.value.trim(),
+      password: form.elements.password.value
+    });
+    state.token = session.token;
+    state.role = session.role;
+    state.user = form.elements.username.value.trim();
+    sessionStorage.setItem('zx.token', state.token);
+    sessionStorage.setItem('zx.role', state.role);
+    sessionStorage.setItem('zx.user', state.user);
+    await enter();
+  } catch (error) {
+    $('loginMsg').textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+};
+
+async function enter() {
+  $('loginView').hidden = true;
+  $('app').hidden = false;
+  $('whoami').textContent = state.user;
+  $('rolechip').textContent = state.role === 'admin' ? '管理员' : '员工';
+  const isAdmin = state.role === 'admin';
+  $('adminBanner').hidden = !isAdmin;
+  $('entryCard').hidden = isAdmin;
+  $('assistCard').hidden = isAdmin;
+  $('clock').textContent = new Date().toLocaleString('zh-CN', {timeZone:'Asia/Shanghai',month: 'long', day: 'numeric', weekday: 'long'});
+  const hour = Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Shanghai',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
+  $('greet').textContent = (hour < 12 ? '上午好' : hour < 18 ? '下午好' : '晚上好') + '，' + (isAdmin ? '请查看待审批事项' : '今天要处理什么？');
+  const tomorrow = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Shanghai'})); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(9, 0, 0, 0);
+  const later = new Date(tomorrow); later.setHours(10, 0, 0, 0);
+  if (!$('entryForm').elements.start.value) {
+    $('entryForm').elements.start.value = localInput(tomorrow);
+    $('entryForm').elements.end.value = localInput(later);
+  }
+  await loadRooms();
+  await loadVehicles();
+  await loadRecords();
+  if (typeof loadDrafts === 'function') await loadDrafts();
+}
+
+async function loadRooms() {
+  const select = $('roomSelect');
+  try {
+    const data = await api('/rooms');
+    state.rooms = Object.entries(data).map(([name, capacity]) => ({name, capacity}));
+    select.replaceChildren(new Option('请选择会议室', ''));
+    state.rooms.forEach(room => select.add(new Option(room.name + '（' + room.capacity + ' 人）', room.name)));
+    $('roomHint').textContent = '当前可用 ' + state.rooms.length + ' 间，容量由管理端维护，变更后自动生效。';
+  } catch (error) {
+    select.replaceChildren(new Option('目录加载失败，请刷新', ''));
+    $('roomHint').textContent = error.message;
+  }
+}
+
+async function loadVehicles() {
+  const select = $('vehicleSelect');
+  try {
+    const data = await api('/vehicles');
+    state.vehicles = Object.entries(data).map(([name, seats]) => ({name, seats}));
+    select.replaceChildren(new Option('请选择车辆', ''));
+    state.vehicles.forEach(item => select.add(new Option(item.name, item.name)));
+    $('vehicleHint').textContent = '当前可用 ' + state.vehicles.length + ' 辆；请选择启用车牌；提交时校验时段占用。';
+  } catch (error) {
+    select.replaceChildren(new Option('车辆目录加载失败，请刷新', ''));
+    $('vehicleHint').textContent = error.message;
+  }
+}
+
+function setKind(kind) {
+  state.kind = kind;
+  const form = $('entryForm');
+  document.querySelectorAll('#kindSeg button').forEach(button => button.classList.toggle('on', button.dataset.kind === kind));
+  const isExpense = kind === 'expense';
+  $('timeWrap').hidden = isExpense;
+  form.elements.start.required = !isExpense;
+  form.elements.end.required = !isExpense;
+  $('roomWrap').hidden = kind !== 'room';
+  $('passengerWrap').hidden = kind !== 'room';
+  $('destWrap').hidden = !['travel', 'vehicle'].includes(kind);
+  $('vehicleWrap').hidden = kind !== 'vehicle';
+  $('leaveWrap').hidden = kind !== 'leave';
+  $('categoryWrap').hidden = !isExpense;
+  $('amountWrap').hidden = !isExpense;
+  $('receiptWrap').hidden = !isExpense;
+  $('passengerLabel').innerHTML = (kind === 'room' ? '参会人数' : '乘车人数') + ' <span class="req">*</span>';
+  $('passengerHint').textContent = kind === 'room' ? '超过会议室容量会被拒绝。' : '用车不填写人数。';
+  $('destLabel').textContent = kind === 'travel' ? '出差目的地 *' : '用车目的地（选填）';
+  const titles = {schedule: '标题', room: '会议主题', travel: '出差事由', vehicle: '用车事由', leave: '请假事由', expense: '报销事由'};
+  $('titleLabel').innerHTML = titles[kind] + ' <span class="req">*</span>';
+  const tips = {schedule: '例如：整理周报', room: '例如：项目周会', travel: '例如：上海客户回访',
+                vehicle: '例如：接送客户', leave: '例如：家中有事', expense: '例如：客户拜访打车费'};
+  form.elements.title.placeholder = tips[kind];
+  form.elements.title.required = kind !== 'leave';
+  form.elements.title.closest('.field').hidden = kind === 'leave';
+  $('entryMsg').textContent = '';
+}
+
+document.querySelectorAll('#kindSeg button').forEach(button => { button.onclick = () => setKind(button.dataset.kind); });
+
+function fileToData(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function readReceipts() {
+  const files = [...$('receiptInput').files];
+  if (files.length > 3) throw new Error('最多上传 3 张票据');
+  for (const file of files) {
+    if (file.size > 2 * 1024 * 1024) throw new Error('票据「' + file.name + '」超过 2 MB');
+  }
+  return Promise.all(files.map(fileToData));
+}
+
+$('receiptInput').onchange = () => {
+  const box = $('receiptPreview');
+  box.replaceChildren();
+  const files = [...$('receiptInput').files].slice(0, 3);
+  files.forEach(file => {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.alt = file.name;
+    img.title = file.name;
+    box.append(img);
+  });
+  $('receiptHint').textContent = $('receiptInput').files.length + ' 张，每张不超过 2 MB';
+};
+
+$('entryForm').onsubmit = async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(new FormData(form));
+  const message = $('entryMsg');
+  message.className = 'msg';
+  const fail = text => { message.textContent = text; message.className = 'msg err'; };
+  const title = state.kind === 'leave' ? (data.leave_type || '') + '申请' : (data.title || '').trim();
+  if (!title) return fail('请填写标题');
+  const payload = {kind: state.kind, title, detail: (data.remark || '').trim()};
+  if (state.kind === 'expense') {
+    const amount = Number(data.amount);
+    if (!(amount >= 0.01 && amount <= 50000)) return fail('金额需在 0.01 至 50000 元之间');
+    if (!data.category) return fail('请选择费用类别');
+    if ($('receiptInput').files.length < 1) return fail('请上传至少一张票据照片');
+    payload.amount = data.amount;
+    payload.category = data.category;
+    try {
+      payload.receipts = await readReceipts();
+    } catch (error) {
+      return fail(error.message);
+    }
+  } else {
+    if (!data.start || !data.end) return fail('请选择开始与结束时间');
+    if (data.end <= data.start) return fail('结束时间必须晚于开始时间');
+    payload.start = data.start;
+    payload.end = data.end;
+    if (state.kind === 'room') {
+      if (!data.room) return fail('请选择会议室');
+      payload.detail = data.room;
+      payload.passengers = Number(data.passengers);
+      if (!(payload.passengers > 0)) return fail('请填写参会人数');
+    }
+    if (['travel', 'vehicle'].includes(state.kind)) {
+      payload.destination = (data.destination || '').trim();
+      if (state.kind === 'travel' && !payload.destination) return fail('请填写目的地');
+    }
+    if (state.kind === 'vehicle') {
+      if (!data.vehicle) return fail('请选择车辆');
+      payload.vehicle = data.vehicle;
+
+    }
+    if (state.kind === 'leave') {
+      if (!data.leave_type) return fail('请选择假别');
+      payload.leave_type = data.leave_type;
+    }
+  }
+  const button = $('submitEntry');
+  button.disabled = true;
+  try {
+    const serialized = JSON.stringify(payload);
+    if (state.submission && state.submission.payload !== serialized) {
+      throw new Error('上次提交结果尚未确认，请恢复上次内容重试，或先刷新记录核对；确认后点击“开始新申请”。');
+    }
+    state.submission ||= {key: crypto.randomUUID(), payload: serialized};
+    const result = await api('/records', 'POST', payload, {'Idempotency-Key': state.submission.key});
+    state.submission = null;
+    if (result.warnings?.length) alert(result.warnings.join('\n'));
+
+    message.textContent = state.kind === 'schedule' ? '已提交，日程已登记' : '已提交，等待管理员审批';
+    form.elements.title.value = '';
+    form.elements.remark.value = '';
+    if (form.elements.destination) form.elements.destination.value = '';
+    if (form.elements.amount) form.elements.amount.value = '';
+    if (form.elements.passengers) form.elements.passengers.value = '';
+    if (form.elements.leave_type) form.elements.leave_type.value = '';
+    if (form.elements.category) form.elements.category.value = '';
+    $('receiptInput').value = '';
+    $('receiptPreview').replaceChildren();
+    $('receiptHint').textContent = '1–3 张，每张不超过 2 MB';
+    toast('提交成功');
+    await loadRecords();
+  } catch (error) {
+    if (error.status && error.status < 500) state.submission = null;
+    fail(error.message);
+  } finally {
+    button.disabled = false;
+  }
+};
+
+document.querySelectorAll('#filters button').forEach(button => {
+  button.onclick = () => {
+    state.filter = button.dataset.filter;
+    document.querySelectorAll('#filters button').forEach(item => item.classList.toggle('on', item === button));
+    renderRecords();
+  };
+});
+
+async function loadRecords() {
+  const rows = await api('/records');
+  state.rows = Array.isArray(rows) ? rows : [];
+  renderRecords();
+}
+
+function matches(row) {
+  if (state.filter === 'all') return true;
+  if (['schedule', 'room', 'travel', 'vehicle', 'leave', 'expense'].includes(state.filter)) return row.kind === state.filter;
+  return row.status === state.filter;
+}
+
+function renderRecords() {
+  const list = $('recordList');
+  list.replaceChildren();
+  const rows = state.rows.filter(matches);
+  const pending = state.rows.filter(row => row.status === 'pending').length;
+  $('recCount').textContent = '共 ' + state.rows.length + ' 条' + (pending ? ' · 待审批 ' + pending + ' 条' : '');
+  if (!rows.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = state.filter === 'all' ? '还没有记录，先提交一条事项或让助手生成。' : '该筛选下暂无记录。';
+    list.append(empty);
+    return;
+  }
+  rows.forEach(row => {
+    const data = row.data || {};
+    const card = document.createElement('article');
+    card.className = 'record';
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.append(badge(KIND[row.kind] || row.kind, 'kind'), badge(recordStatus(row), 'status s-' + row.status));
+    const time = document.createElement('span');
+    time.className = 'hint';
+    time.textContent = data.start && data.end ? fmtRange(data.start, data.end) : '报销单据 · 按提交时间审批';
+    line.append(time);
+    card.append(line);
+    const title = document.createElement('h3');
+    title.textContent = data.title || '(未命名)';
+    card.append(title);
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    if (row.kind === 'room') {
+      meta.append(span('会议室：' + (data.detail || '-')), span('参会：' + (data.passengers || '?') + ' 人'));
+    } else if (row.kind === 'travel') {
+      meta.append(span('目的地：' + (data.destination || data.detail || '-')));
+    } else if (row.kind === 'vehicle') {
+      meta.append(span('目的地：' + (data.destination || data.detail || '-')),
+        span('车牌：' + (data.vehicle || '-')));
+    } else if (row.kind === 'leave') {
+      meta.append(span('假别：' + (data.leave_type || '-')), span('时长：' + leaveDays(data)));
+    } else if (row.kind === 'expense') {
+      meta.append(span('类别：' + (data.category || '-')), span('金额：¥' + Number(data.amount || 0).toFixed(2)));
+    } else if (data.detail) {
+      meta.append(span('备注：' + data.detail));
+    }
+    if (row.owner && state.role === 'admin') meta.append(span('提交人：' + row.owner));
+    card.append(meta);
+    if (data.receipts && data.receipts.length) {
+      const box = document.createElement('div');
+      box.className = 'thumbs';
+      data.receipts.forEach(file => {
+        const img = document.createElement('img');
+        img.src = '/api/v1/receipts/' + file + '?token=' + encodeURIComponent(state.token);
+        img.alt = '票据';
+        img.title = '点击查看大图';
+        img.onclick = () => window.open(img.src, '_blank');
+        box.append(img);
+      });
+      card.append(box);
+    }
+    if (data.remark) {
+      const remark = document.createElement('div');
+      remark.className = 'remark';
+      remark.textContent = '审批意见：' + data.remark;
+      card.append(remark);
+    }
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    if (state.role !== 'admin') {
+      if (row.kind === 'schedule' && row.status === 'active') {
+        actions.append(button('修改日程', () => openEdit(row), 'ghost'));
+        actions.append(button('删除', () => removeRecord(row), 'danger'));
+      } else if (row.can_cancel) {
+        actions.append(button(row.status === 'approved' ? '取消预约' : '撤回申请', () => removeRecord(row), 'danger'));
+      }
+    }
+    appendHistory(card, row);
+    if (actions.children.length) card.append(actions);
+    list.append(card);
+  });
+}
+
+function leaveDays(data) {
+  if (!data.start || !data.end) return '-';
+  const hours = (new Date(data.end + '+08:00') - new Date(data.start + '+08:00')) / 3600000;
+  const days = hours / 24;
+  return (Math.round(days * 10) / 10) + ' 天';
+}
+
+function span(text) { const el = document.createElement('span'); el.textContent = text; return el; }
+function badge(text, cls) {
+  const el = document.createElement('span');
+  el.className = cls;
+  el.textContent = text;
+  return el;
+}
+function button(text, handler, variant) {
+  const el = document.createElement('button');
+  el.className = 'btn small ' + (variant || '');
+  el.type = 'button';
+  el.textContent = text;
+  el.onclick = handler;
+  return el;
+}
+
+async function removeRecord(row) {
+  const label = row.kind === 'schedule' ? '删除这条日程' : '撤回这条申请';
+  if (!confirm('确认' + label + '？')) return;
+  try {
+    const reason = row.status === 'approved' ? prompt('请填写取消原因（必填）') : '';
+    if (reason === null) return;
+    await api('/records/' + row.id, 'DELETE', {reason});
+    toast('操作成功');
+    await loadRecords();
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+function openEdit(row) {
+  const data = row.data || {};
+  const form = $('editForm');
+  form.elements.id.value = row.id;
+  form.elements.title.value = data.title || '';
+  form.elements.start.value = (data.start || '').slice(0, 16);
+  form.elements.end.value = (data.end || '').slice(0, 16);
+  form.elements.detail.value = data.detail || '';
+  $('editMask').hidden = false;
+}
+
+$('cancelEdit').onclick = () => { $('editMask').hidden = true; };
+$('editForm').onsubmit = async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(new FormData(form));
+  if (data.end <= data.start) { toast('结束时间必须晚于开始时间', true); return; }
+  try {
+    await api('/records/' + data.id, 'PUT', {kind: 'schedule', title: data.title.trim(), start: data.start, end: data.end, detail: data.detail});
+    $('editMask').hidden = true;
+    toast('日程已更新');
+    await loadRecords();
+  } catch (error) {
+    toast(error.message, true);
+  }
+};
+
+document.querySelectorAll('.chips button').forEach(button => {
+  button.onclick = () => { $('chatForm').elements.message.value = button.dataset.q; $('chatForm').elements.message.focus(); };
+});
+
+function addBubble(text, mine, tag) {
+  const log = $('chatLog');
+  const empty = log.querySelector('.empty');
+  if (empty) empty.remove();
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ' + (mine ? 'me' : 'bot');
+  if (tag) {
+    const label = document.createElement('span');
+    label.className = 'tag';
+    label.textContent = tag;
+    bubble.append(label, document.createElement('br'));
+  }
+  bubble.append(document.createTextNode(text));
+  log.append(bubble);
+  log.scrollTop = log.scrollHeight;
+  return bubble;
+}
+
+$('imageInput').onchange = event => {
+  const file = event.target.files[0];
+  $('imageHint').textContent = file ? '已选择：' + file.name + '（' + Math.round(file.size / 1024) + ' KB）' : '可附加会议通知截图，PNG / JPEG / WebP，不超过 2 MB';
+};
+
+$('chatForm').onsubmit = async event => {
+  event.preventDefault();
+  const form = event.currentTarget, send = $('sendChat');
+  const message = form.elements.message.value.trim();
+  if (!message || send.disabled) return;
+  send.disabled = true;
+  try {
+    const file = $('imageInput').files[0];
+    if (file && file.size > 2*1024*1024) throw new Error('图片超过2MB');
+    const image = file ? await fileToData(file) : null;
+    const reply = await api('/agent/chat','POST',{message,image});
+    addBubble(message,true);
+    addBubble((reply.items || []).join('\n'),false,MODE[reply.mode]);
+    if (!reply.context_available) addBubble('上下文暂不可用，本次按单轮处理；可以继续使用表单。',false);
+    if (reply.proposal_id) await showProposal(reply.proposal_id);
+    if (reply.mode === 'deepseek') {
+      form.elements.message.value=''; $('imageInput').value='';
+      $('imageHint').textContent='可附加会议通知截图，PNG / JPEG / WebP，不超过 2 MB';
+    }
+  } catch(error) { addBubble(error.message,false); }
+  finally { send.disabled=false; }
+};
+$('clearChat').onclick = async () => {
+  try {
+    await api('/agent/context','DELETE');
+    $('chatLog').querySelectorAll('.bubble').forEach(el=>el.remove());
+    addBubble('已开始新对话，待确认草稿仍保留。',false);
+  } catch(error) { toast(error.message,true); }
+};
+
+$('refreshRecords').onclick = async () => {
+  try { await loadRecords(); toast('记录已刷新'); } catch (error) { toast(error.message, true); }
+};
+
+$('logout').onclick = signOut;
+
+(async function start() {
+  if (!state.token) return;
+  try { await enter(); } catch (error) { signOut(); }
+})();
+</script>
+<script src="/proposal_editor.js"></script>
+</body>
+</html>

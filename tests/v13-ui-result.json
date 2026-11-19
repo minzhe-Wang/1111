@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-19T03:12:42.788Z",
+  "passed": [
+    "login",
+    "schedule submission",
+    "vehicle without passengers",
+    "generated leave title",
+    "1440/1024/390 no horizontal overflow",
+    "network failure preserves input and retries",
+    "model failure preserves message and image",
+    "real model draft edit/confirm",
+    "sign-out clears private chat",
+    "mobile page",
+    "admin plate page"
+  ],
+  "pageErrors": []
+}

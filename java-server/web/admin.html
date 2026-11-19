@@ -1,69 +1,722 @@
 <!doctype html>
-<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI 智能行政办公平台</title>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>智行政 · 管理工作台</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#eef3f6;color:#112e3b;font:16px "Microsoft YaHei",sans-serif}header{background:#102e3b;color:white;padding:42px max(5vw,20px)}h1{margin:8px 0;font-size:clamp(28px,4vw,48px)}main{width:min(1080px,92vw);margin:24px auto}section{background:white;padding:24px;margin-bottom:18px;border:1px solid #d6e3e9;border-radius:14px}form{display:flex;flex-wrap:wrap;gap:12px;align-items:end}label{display:grid;gap:6px}input,select,button{font:inherit;padding:10px;border:1px solid #a9bbc2;border-radius:6px}button{color:white;background:#006758;border-color:#006758;cursor:pointer}p{line-height:1.6}li{padding:12px 0;border-bottom:1px solid #d6e3e9}li button{margin:6px}#status{font-weight:bold;color:#006758}pre{white-space:pre-wrap;overflow-wrap:anywhere}[hidden]{display:none!important}
+:root{--navy:#123340;--teal:#0d7a63;--teal-2:#0a6150;--bg:#eef3f4;--card:#fff;--line:#dae5e8;--muted:#5d757e;--warn:#a86a12;--warn-bg:#fdf3e3;--bad:#a83f37;--bad-bg:#fbebea;--ok:#0d7a63;--ok-bg:#e7f4ef;--shadow:0 10px 28px rgba(18,51,64,.06)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:#153039;font:14px/1.6 "Microsoft YaHei","PingFang SC",sans-serif}
+a{color:var(--teal);text-decoration:none}
+.shell{display:grid;grid-template-columns:212px 1fr;min-height:100vh}
+aside{background:var(--navy);color:#fff;padding:20px 16px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#19a183,#0d7a63);display:grid;place-items:center;font-weight:700}
+.logo b{font-size:15px;letter-spacing:.5px}
+.logo small{display:block;font-size:11px;color:#a9c6cf;font-weight:400}
+.nav{display:grid;gap:4px}
+.nav button{display:flex;align-items:center;gap:9px;border:0;background:transparent;color:#cfe2e6;text-align:left;padding:10px 12px;border-radius:8px;font:inherit;cursor:pointer}
+.nav button:hover{background:rgba(255,255,255,.08)}
+.nav button.on{background:rgba(255,255,255,.14);color:#fff;font-weight:600}
+.nav .dot{width:6px;height:6px;border-radius:50%;background:#5f8794}
+.nav button.on .dot{background:#39c39f}
+.side-foot{margin-top:auto;font-size:12px;color:#8fadb8;display:grid;gap:8px}
+.side-foot a{color:#cfe2e6}
+main{padding:20px 26px 40px;min-width:0}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.top h1{margin:0;font-size:22px;color:var(--navy)}
+.top p{margin:0;font-size:12px;color:var(--muted)}
+.user{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:6px 12px;font-size:12px;color:#45606a;margin-left:auto}
+.user b{color:var(--navy)}
+.btn{border:1px solid transparent;border-radius:8px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;background:var(--teal);color:#fff}
+.btn:hover{background:var(--teal-2)}
+.btn.ghost{background:#fff;color:var(--navy);border-color:var(--line)}
+.btn.ghost:hover{background:#f2f7f8}
+.btn.small{padding:4px 10px;font-size:12px;border-radius:6px}
+.btn.warn{background:#fff;color:var(--warn);border-color:#e7cd9d}
+.btn.warn:hover{background:var(--warn-bg)}
+.btn.bad{background:#fff;color:var(--bad);border-color:#e6c4c1}
+.btn.bad:hover{background:var(--bad-bg)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.panel{display:none}
+.panel.on{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat .k{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.stat .v{font-size:26px;font-weight:700;color:var(--navy);line-height:1.25;margin-top:4px}
+.stat .v.warn{color:var(--warn)}
+.stat .v.ok{color:var(--ok)}
+.stat .n{font-size:11px;color:#8ba0a7}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:18px}
+.card h2{margin:0 0 4px;font-size:15px;color:var(--navy)}
+.card .sub{margin:0 0 14px;font-size:12px;color:var(--muted)}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.toolbar select,.toolbar input{font:inherit;font-size:13px;padding:7px 10px;border:1px solid #b9cdd2;border-radius:7px;background:#fff;min-width:120px}
+.toolbar .grow{flex:1}
+.toolbar .btn{margin-left:auto}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th,td{border-bottom:1px solid #e6eeef;padding:10px 8px;text-align:left;vertical-align:middle;overflow-wrap:anywhere}
+th{background:#f4f8f9;color:#38545e;font-size:12px;font-weight:600}
+td{font-size:13px}
+tbody tr:hover{background:#fafcfc}
+.badge{display:inline-block;font-size:11px;border-radius:5px;padding:2px 7px;border:1px solid transparent;white-space:nowrap}
+.b-pending{color:var(--warn);background:var(--warn-bg);border-color:#eed9b3}
+.b-approved{color:var(--ok);background:var(--ok-bg);border-color:#c9e5db}
+.b-rejected{color:var(--bad);background:var(--bad-bg);border-color:#eccac7}
+.b-active{color:var(--ok);background:var(--ok-bg);border-color:#c9e5db}
+.b-other{color:#61767e;background:#eef2f3;border-color:#dde6e8}
+.kind{display:inline-block;font-size:11px;color:#2b5d6a;background:#eaf2f4;border-radius:5px;padding:2px 7px}
+.pending-list{display:grid;gap:10px}
+.pitem{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px;background:#fff}
+.pitem .line{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pitem h3{margin:0;font-size:14px;color:var(--navy)}
+.pitem .meta{font-size:12px;color:#4c6771}
+.pitem .meta span{margin-right:14px}
+.pitem .acts{display:flex;gap:8px;justify-content:flex-end}
+.roomrow td input[type=number]{width:86px}
+.vehicle-row td input[type=number]{width:86px}
+.roomrow td input[type=checkbox],.vehicle-row td input[type=checkbox]{width:16px;height:16px}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.thumbs img{width:48px;height:48px;object-fit:cover;border-radius:5px;border:1px solid var(--line);cursor:zoom-in}
+.note{font-size:12px;color:#7a5a20;background:#fdf7ea;border:1px solid #eed9b3;border-radius:8px;padding:8px 10px;margin-top:12px}
+.empty{color:#8ba0a7;font-size:13px;text-align:center;padding:24px 0}
+.mask{position:fixed;inset:0;background:rgba(12,32,40,.45);display:grid;place-items:center;z-index:50;padding:20px}
+.modal{width:min(440px,94vw);background:#fff;border-radius:12px;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.2)}
+.modal h3{margin:0 0 4px;font-size:15px;color:var(--navy)}
+.modal p{margin:0 0 12px;font-size:12px;color:var(--muted)}
+.modal textarea{width:100%;min-height:80px;font:inherit;font-size:13px;padding:9px;border:1px solid #b9cdd2;border-radius:8px}
+.modal .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;opacity:0;transition:.25s;z-index:60}
+.toast.on{opacity:1}
+.toast.err{background:#8c3a33}
+.login{min-height:100vh;display:grid;place-items:center;background:radial-gradient(1100px 560px at 50% -10%,#d8ebe6 0%,#eef3f4 55%)}
+.login .box{width:min(420px,92vw);background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 60px rgba(18,51,64,.12);padding:28px}
+.login h1{margin:6px 0 4px;font-size:22px;color:var(--navy)}
+.login p{margin:0 0 18px;font-size:12px;color:var(--muted)}
+.field{display:grid;gap:6px;margin-bottom:12px}
+.field label{font-size:12px;color:#45606a}
+.login input{font:inherit;padding:10px;border:1px solid #b9cdd2;border-radius:8px}
+.login .btn{width:100%;padding:10px}
+.login .msg{min-height:18px;font-size:12px;color:var(--bad);margin-top:8px}
+@media (max-width:900px){.shell{grid-template-columns:1fr}aside{position:static;height:auto}.nav{grid-template-columns:repeat(3,1fr)}.side-foot{display:none}main{padding:16px}}
+@media(max-width:600px){.topbar{flex-wrap:wrap;gap:8px}.userchip{max-width:100%;overflow-wrap:anywhere}.card,.grid>*{min-width:0}.proposal input,.proposal select{min-width:0}}
 </style>
-<header><div>软件开发综合课程设计</div><h1>智行政 · 管理工作台</h1></header>
-<main><nav style="margin-bottom:20px"><a href="/">员工工作台</a>　<a href="/admin.html">管理工作台</a>　<a href="/mobile.html">移动端</a></nav>
-<section><form id="login"><label>演示身份<select name="username"><option>employee</option><option>admin</option></select></label><label>密码<input name="password" type="password" value="OfficeDemo1" required></label><button>登录</button><button type="button" id="register">注册员工账号</button></form><p id="status" role="status">请选择身份并登录</p></section>
-<div id="workspace" hidden>
-<section><h2>提交办公事项</h2><form id="entry"><label>类型<select name="kind"><option value="schedule">个人日程</option><option value="room">会议室预约</option><option value="travel">出差申请</option></select></label><label>标题或事由<input name="title" maxlength="100" required></label><label>开始<input type="datetime-local" name="start" required></label><label>结束<input type="datetime-local" name="end" required></label><label id="detailLabel">备注<input name="detail" maxlength="255"></label><label id="roomLabel" hidden>会议室<select name="room"><option>海棠厅</option><option>梧桐厅</option><option>松柏厅</option></select></label><button>提交</button></form></section>
-<section><h2>办公助手</h2><form id="chat"><label>你的指令<input name="message" size="34" maxlength="300" value="找一间能容纳 20 人的会议室" required></label><button>发送</button></form><pre id="reply"></pre></section>
-<section><h2>办公记录</h2><button id="refresh">刷新记录</button><ul id="records"></ul></section>
-<section id="logSection" hidden><h2>Agent 日志</h2><button id="showLogs">刷新日志</button><pre id="logs"></pre></section>
-</div></main>
+</head>
+<body>
+
+<div id="loginView" class="login">
+  <div class="box">
+    <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#19a183,#0d7a63);display:grid;place-items:center;color:#fff;font-weight:700">智</div>
+    <h1>管理工作台</h1>
+    <p>审批、归档、会议室维护与运行指标。仅管理员可进入。</p>
+    <form id="loginForm">
+      <div class="field"><label>管理员账号</label><input name="username" value="admin" autocomplete="username" required></div>
+      <div class="field"><label>密码</label><input name="password" type="password" value="OfficeDemo2" autocomplete="current-password" required></div>
+      <button class="btn">进入工作台</button>
+    </form>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <div class="shell">
+    <aside>
+      <div class="logo"><div class="mark">智</div><div><b>智行政</b><small>管理工作台</small></div></div>
+      <div class="nav" id="nav">
+        <button type="button" data-panel="overview" class="on"><span class="dot"></span>运行概览</button>
+        <button type="button" data-panel="pending"><span class="dot"></span>待审批事项</button>
+        <button type="button" data-panel="records"><span class="dot"></span>全部记录</button>
+        <button type="button" data-panel="rooms"><span class="dot"></span>会议室维护</button>
+        <button type="button" data-panel="vehicles"><span class="dot"></span>车辆维护</button>
+        <button type="button" data-panel="logs"><span class="dot"></span>助手日志</button>
+        <button type="button" data-panel="cache"><span class="dot"></span>缓存指标</button>
+      </div>
+      <div class="side-foot">
+        <a href="/">员工工作台</a>
+        <a href="/mobile.html">移动端</a>
+        <button class="btn ghost small" id="logout" style="margin-top:4px">退出登录</button>
+      </div>
+    </aside>
+
+    <main>
+      <div class="top">
+        <div><h1 id="panelTitle">运行概览</h1><p id="panelSub">审批工作量、记录规模与缓存状态</p></div>
+        <div class="user">管理员：<b id="whoami">-</b></div>
+      </div>
+
+      <section class="panel on" id="panel-overview">
+        <div class="cards" id="summaryCards"></div>
+        <div class="card">
+          <h2>最近待审批</h2>
+          <p class="sub">按提交时间倒序，最多展示 6 条。处理完成后概览数字会同步刷新。</p>
+          <div class="pending-list" id="overviewPending"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-pending">
+        <div class="card">
+          <h2>待审批事项</h2>
+          <p class="sub">通过或驳回都会写入审批意见，并同步到员工端记录。已处理记录不接受二次审批。</p>
+          <div class="pending-list" id="pendingList"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-records">
+        <div class="card">
+          <h2>全部记录</h2>
+          <p class="sub">包含所有员工提交的六类办公事项与助手确认记录；助手日志不在其中。</p>
+          <div class="toolbar">
+            <select id="filterKind"><option value="">全部类型</option><option value="schedule">日程</option><option value="room">会议室</option><option value="travel">出差</option><option value="vehicle">用车</option><option value="leave">假条</option><option value="expense">报销</option></select>
+            <select id="filterStatus"><option value="">全部状态</option><option value="pending">待审批</option><option value="approved">已通过</option><option value="rejected">已驳回</option><option value="cancelled">已撤回</option><option value="archived">已归档</option><option value="active">已登记</option></select>
+            <input id="filterText" placeholder="搜索标题、提交人或会议室">
+            <button class="btn ghost small" id="refreshRecords">刷新</button>
+          </div>
+          <table>
+            <thead><tr><th style="width:88px">类型</th><th>标题</th><th style="width:150px">时间</th><th style="width:190px">详情</th><th style="width:90px">提交人</th><th style="width:86px">状态</th><th style="width:76px">操作</th></tr></thead>
+            <tbody id="recordBody"></tbody>
+          </table>
+          <div class="empty" id="recordEmpty" hidden>没有符合条件的记录。</div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-rooms">
+        <div class="card">
+          <h2>会议室维护</h2>
+          <p class="sub">维护会议室容量和启停状态，保存后刷新员工目录即可查看新值。</p>
+          <table>
+            <thead><tr><th>会议室</th><th style="width:150px">容纳人数</th><th style="width:120px">状态</th><th style="width:110px">操作</th></tr></thead>
+            <tbody id="roomBody"></tbody>
+          </table>
+          <div class="note" id="roomNote">修改后请回到员工端刷新会议室下拉，观察目录是否同步。</div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-vehicles">
+        <div class="card">
+          <h2>车辆维护</h2>
+          <p class="sub">员工选择启用车牌提交用车申请，系统检查时段占用，不校验人数或座位。</p>
+          <table>
+            <thead><tr><th>车牌</th><th style="width:120px">状态</th><th style="width:110px">操作</th></tr></thead>
+            <tbody id="vehicleBody"></tbody>
+          </table>
+          <div class="note" id="vehicleNote">保存后重新读取员工目录即可获取新值。</div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-logs">
+        <div class="card">
+          <h2>助手日志</h2>
+          <p class="sub">最近50条助手调用，展示模式、技能和时间，私人输入与日程内容不显示。</p>
+          <div class="toolbar"><button class="btn ghost small" id="refreshLogs">刷新日志</button></div>
+          <table>
+            <thead><tr><th style="width:110px">提交人</th><th style="width:120px">模式</th><th style="width:120px">技能</th><th>指令</th><th style="width:150px">时间</th></tr></thead>
+            <tbody id="logBody"></tbody>
+          </table>
+          <div class="empty" id="logEmpty" hidden>暂无助手日志。</div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-cache">
+        <div class="cards" id="cacheCards"></div>
+        <div class="card">
+          <h2>两级缓存说明</h2>
+          <p class="sub">本地缓存 3 秒，Redis 缓存 60 秒。目录变更时两层同时失效，预约状态不缓存。</p>
+          <div class="note">判断缓存是否生效：连续刷新两次“会议室维护”再回到员工端，观察 database_read 是否只在本地与 Redis 均未命中时增长。</div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="mask" id="decideMask" hidden>
+  <div class="modal">
+    <h3 id="decideTitle">审批</h3>
+    <p id="decideSub">填写审批意见，员工端会看到这段文字。</p>
+    <textarea id="decideRemark" maxlength="255" placeholder="例如：同意，请按时参加"></textarea>
+    <div class="foot"><button class="btn ghost" type="button" id="cancelDecide">取消</button><button class="btn" id="submitDecide">提交</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/record_helpers.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-let token = '', role = '';
-const names = {schedule:'日程',room:'会议室',travel:'出差',active:'已登记',pending:'待审批',approved:'已通过',rejected:'已驳回',cancelled:'已撤回',archived:'已归档',offline:'离线规则',deepseek:'DeepSeek',fallback:'模型异常，使用离线规则'};
-async function api(path, method='GET', body){
- const res=await fetch('/api/v1'+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body===undefined?undefined:JSON.stringify(body)});
- const data=await res.json();
- if(!res.ok) throw Error(typeof data.detail==='string'?data.detail:(data.detail?.[0]?.msg??'请求失败'));
- return data;
+const KIND = {schedule:'日程', room:'会议室', travel:'出差', vehicle:'用车', leave:'假条', expense:'报销'};
+const STATUS = {active:'已登记', pending:'待审批', approved:'已通过', rejected:'已驳回', cancelled:'已撤回', archived:'已归档'};
+const MODE = {deepseek:'DeepSeek', fallback:'离线规则', offline:'离线规则', confirmed:'已确认'};
+const state = {token:'', rows:[], rooms:[], vehicles:[], decide:null, panel:'overview'};
+
+function toast(text, bad) {
+  const el = $('toast');
+  el.textContent = text;
+  el.className = 'toast on' + (bad ? ' err' : '');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => { el.className = 'toast'; }, 2600);
 }
-async function run(action, success){
- try { await action(); $('status').textContent=success; } catch(error){ $('status').textContent=error.message; $('status').scrollIntoView({block:'nearest'}); }
-}
-function bind(id, action, success){ $(id).onsubmit=e=>{e.preventDefault(); const form=e.currentTarget; run(()=>action(Object.fromEntries(new FormData(form))),success);};}
-$('login').elements.username.onchange=e=>$('login').elements.password.value=e.target.value==='admin'?'OfficeDemo2':'OfficeDemo1';
-$('entry').elements.kind.onchange=e=>{ const kind=e.target.value; $('detailLabel').hidden=kind==='room'; $('roomLabel').hidden=kind!=='room'; };
-bind('login',async data=>{const session=await api('/login','POST',data); token=session.token;role=session.role;$('workspace').hidden=false;$('logSection').hidden=role!=='admin';$('reply').textContent='';$('logs').textContent='';await api('/rooms');await loadRecords();},'登录成功');
-bind('entry',async data=>{if(data.kind==='room')data.detail=data.room;delete data.room;await api('/records','POST',data);await loadRecords();},'提交成功');
-bind('chat',async data=>{const reply=await api('/agent/chat','POST',data);$('reply').textContent=names[reply.mode]+' · '+reply.skill+'\n'+reply.items.join('\n');},'助手已返回结果');
-async function loadRecords(){
- const rows=await api('/records');$('records').replaceChildren();
- for(const row of rows){
-  const item=document.createElement('li');const d=row.data;
-  item.textContent=names[row.kind]+' · '+d.title+' · '+names[row.status]+' · '+d.start.replace('T',' ')+' 至 '+d.end.replace('T',' ')+' '+d.detail+(d.remark?' · 审批意见：'+d.remark:'');
-  if(role==='admin'&&row.status==='pending')for(const status of ['approved','rejected']){
-    const button=document.createElement('button');button.textContent=names[status];item.append(button);
-    button.onclick=()=>{const remark=prompt('填写审批意见',status==='approved'?'同意':'请补充说明');if(remark!==null)run(async()=>{await api('/records/'+row.id,'PATCH',{status,remark});await loadRecords();},'审批已保存');};
+
+async function api(path, method, body) {
+  const res = await fetch('/api/v1' + path, {
+    method: method || 'GET',
+    headers: Object.assign({'Content-Type':'application/json'}, state.token ? {Authorization:'Bearer ' + state.token} : {}),
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const text = await res.text();
+  let data = null;
+  if (text) { try { data = JSON.parse(text); } catch (e) { data = null; } }
+  if (res.status === 401) { logout(); throw new Error('登录已失效'); }
+  if (!res.ok) {
+    let detail = data && data.detail;
+    if (Array.isArray(detail)) detail = detail[0] && (detail[0].msg || detail[0].message);
+    if (detail && typeof detail === 'object') detail = detail.msg || detail.message || '请求失败';
+    throw new Error(detail || ('请求失败（' + res.status + '）'));
   }
-  $('records').append(item);
-  if(role==='employee'&&row.kind==='schedule'&&row.status==='active'){
-    const edit=document.createElement('button');edit.textContent='修改日程';item.append(edit);
-    edit.onclick=()=>{
-      const title=prompt('日程标题',d.title);if(title===null)return;
-      const start=prompt('开始时间，例如 2026-11-20T09:00',d.start);if(start===null)return;
-      const end=prompt('结束时间',d.end);if(end===null)return;
-      run(async()=>{await api('/records/'+row.id,'PUT',{...d,title,start,end});await loadRecords();},'日程已更新');
+  return data;
+}
+
+function logout() {
+  state.token = '';
+  sessionStorage.removeItem('zx.admin.token');
+  $('app').hidden = true;
+  $('loginView').hidden = false;
+}
+
+$('loginForm').onsubmit = async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector('button');
+  $('loginMsg').textContent = '';
+  button.disabled = true;
+  try {
+    const session = await api('/login', 'POST', {
+      username: form.elements.username.value.trim(),
+      password: form.elements.password.value
+    });
+    if (session.role !== 'admin') throw new Error('该账号不是管理员，无法进入管理工作台');
+    state.token = session.token;
+    sessionStorage.setItem('zx.admin.token', state.token);
+    $('whoami').textContent = form.elements.username.value.trim();
+    $('loginView').hidden = true;
+    $('app').hidden = false;
+    await refreshAll();
+  } catch (error) {
+    $('loginMsg').textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+};
+
+$('logout').onclick = logout;
+
+document.querySelectorAll('#nav button').forEach(button => {
+  button.onclick = () => switchPanel(button.dataset.panel);
+});
+
+function switchPanel(panel) {
+  state.panel = panel;
+  document.querySelectorAll('#nav button').forEach(button => button.classList.toggle('on', button.dataset.panel === panel));
+  document.querySelectorAll('.panel').forEach(section => section.classList.toggle('on', section.id === 'panel-' + panel));
+  const titles = {
+    overview: ['运行概览', '审批工作量、记录规模与缓存状态'],
+    pending: ['待审批事项', '处理会议室预约与出差申请'],
+    records: ['全部记录', '按类型、状态与关键字检索'],
+    rooms: ['会议室维护', '维护容量与启停，保存后同步更新员工目录'],
+    vehicles: ['车辆维护', '按车牌维护启停状态，员工自选车牌'],
+    logs: ['助手日志', '查看模式与技能摘要，不显示私人内容'],
+    cache: ['缓存指标', '本地、Redis 与数据库回源次数']
+  };
+  $('panelTitle').textContent = titles[panel][0];
+  $('panelSub').textContent = titles[panel][1];
+  if (panel === 'logs') loadLogs();
+  if (panel === 'cache') loadCache();
+  if (panel === 'vehicles') loadVehicles();
+}
+
+async function refreshAll() {
+  await Promise.all([loadSummary(), loadRecords(), loadRooms(), loadVehicles()]);
+  renderOverviewPending();
+}
+
+async function loadSummary() {
+  try {
+    const data = await api('/admin/summary');
+    const cards = [
+      ['待审批合计', data.pendingTotal, '待审批', data.pendingTotal ? 'warn' : 'ok'],
+      ['待批会议室', data.pendingRoom, '会议室预约', ''],
+      ['待批出差', data.pendingTravel, '出差申请', ''],
+      ['待批用车', data.pendingVehicle, '用车申请', ''],
+      ['待批假条', data.pendingLeave, '请假申请', ''],
+      ['待批报销', data.pendingExpense, '报销单据', ''],
+      ['员工账号', data.employees, '可登录用户', ''],
+      ['业务记录', data.records, '不含助手日志', ''],
+      ['助手调用', data.chats, '含确认记录', ''],
+      ['启用会议室', data.roomsEnabled, '参与预约', 'ok']
+    ];
+    const wrap = $('summaryCards');
+    wrap.replaceChildren();
+    cards.forEach(([label, value, note, tone]) => {
+      const card = document.createElement('div');
+      card.className = 'stat';
+      const k = document.createElement('div'); k.className = 'k'; k.textContent = label;
+      const v = document.createElement('div'); v.className = 'v ' + tone; v.textContent = value;
+      const n = document.createElement('div'); n.className = 'n'; n.textContent = note;
+      card.append(k, v, n);
+      wrap.append(card);
+    });
+  } catch (error) {
+    $('summaryCards').replaceChildren(Object.assign(document.createElement('div'), {className:'empty', textContent: error.message}));
+  }
+}
+
+async function loadRecords() {
+  try {
+    const rows = await api('/records');
+    state.rows = Array.isArray(rows) ? rows : [];
+    renderRecords();
+    renderPending();
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+function renderPending() {
+  const pending = state.rows.filter(row => row.status === 'pending');
+  [$('pendingList'), $('overviewPending')].forEach(target => {
+    target.replaceChildren();
+    const limit = target.id === 'overviewPending' ? 6 : pending.length;
+    if (!pending.length) {
+      target.append(Object.assign(document.createElement('div'), {className:'empty', textContent:'当前没有待审批事项。'}));
+      return;
+    }
+    pending.slice(0, limit).forEach(row => target.append(pendingCard(row)));
+  });
+}
+
+function renderOverviewPending() {
+  const pending = state.rows.filter(row => row.status === 'pending').slice(0, 6);
+  const target = $('overviewPending');
+  target.replaceChildren();
+  if (!pending.length) {
+    target.append(Object.assign(document.createElement('div'), {className:'empty', textContent:'当前没有待审批事项。'}));
+    return;
+  }
+  pending.forEach(row => target.append(pendingCard(row)));
+}
+
+function entryDetail(row) {
+  const data = row.data || {};
+  if (row.kind === 'room') return '会议室：' + (data.detail || '-') + '';
+  if (row.kind === 'travel') return '目的地：' + (data.destination || data.detail || '-');
+  if (row.kind === 'vehicle') return '目的地：' + (data.destination || data.detail || '-') + ' · ' + (data.vehicle || '-') + '';
+  if (row.kind === 'leave') return '假别：' + (data.leave_type || '-') + ' · ' + leaveDays(data);
+  if (row.kind === 'expense') return '类别：' + (data.category || '-') + ' · ¥' + Number(data.amount || 0).toFixed(2) + ' · ' + (data.receipts || []).length + ' 张票据';
+  return data.detail || '—';
+}
+
+function leaveDays(data) {
+  if (!data.start || !data.end) return '—';
+  const days = (new Date(data.end) - new Date(data.start)) / 86400000;
+  return (Math.round(days * 10) / 10) + ' 天';
+}
+
+function receiptsBox(data) {
+  if (!data.receipts || !data.receipts.length) return null;
+  const box = document.createElement('div');
+  box.className = 'thumbs';
+  data.receipts.forEach(file => {
+    const img = document.createElement('img');
+    img.src = '/api/v1/receipts/' + file + '?token=' + encodeURIComponent(state.token);
+    img.alt = '票据';
+    img.title = '点击查看大图';
+    img.onclick = () => window.open(img.src, '_blank');
+    box.append(img);
+  });
+  return box;
+}
+
+function pendingCard(row) {
+  const data = row.data || {};
+  const card = document.createElement('div');
+  card.className = 'pitem';
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.append(kindBadge(row.kind), statusBadge(row.status, row));
+  const time = document.createElement('span'); time.className = 'meta';
+  time.textContent = data.start && data.end
+    ? (data.start || '').replace('T',' ').slice(0,16) + ' 至 ' + (data.end || '').replace('T',' ').slice(0,16)
+    : '报销单据 · 按提交时间审批';
+  line.append(time);
+  const title = document.createElement('h3'); title.textContent = data.title || '(未命名)';
+  const meta = document.createElement('div'); meta.className = 'meta';
+  meta.append(Object.assign(document.createElement('span'), {textContent:'提交人：' + row.owner}));
+  meta.append(Object.assign(document.createElement('span'), {textContent:'编号：' + row.id}));
+  meta.append(Object.assign(document.createElement('span'), {textContent: entryDetail(row)}));
+  const acts = document.createElement('div'); acts.className = 'acts';
+  const approve = document.createElement('button'); approve.className = 'btn small'; approve.textContent = '通过';
+  approve.onclick = () => openDecide(row, 'approved');
+  const reject = document.createElement('button'); reject.className = 'btn small bad'; reject.textContent = '驳回';
+  reject.onclick = () => openDecide(row, 'rejected');
+  acts.append(approve, reject);
+  appendHistory(card, row);
+  card.append(line, title, meta);
+  const receipts = receiptsBox(data);
+  if (receipts) card.append(receipts);
+  card.append(acts);
+  return card;
+}
+
+function renderRecords() {
+  const kind = $('filterKind').value;
+  const status = $('filterStatus').value;
+  const text = $('filterText').value.trim();
+  const rows = state.rows.filter(row => {
+    if (kind && row.kind !== kind) return false;
+    if (status && row.status !== status) return false;
+    if (text) {
+      const hay = [row.owner, row.data && row.data.title, row.data && row.data.detail,
+                   row.data && row.data.destination, row.data && row.data.vehicle, KIND[row.kind]].join(' ');
+      if (!hay.includes(text)) return false;
+    }
+    return true;
+  });
+  const body = $('recordBody');
+  body.replaceChildren();
+  $('recordEmpty').hidden = rows.length > 0;
+  rows.forEach(row => {
+    const data = row.data || {};
+    const tr = document.createElement('tr');
+    const timeText = data.start && data.end
+      ? (data.start || '').replace('T',' ').slice(0,16) + ' 至 ' + (data.end || '').replace('T',' ').slice(0,16)
+      : '—';
+    tr.append(td(kindBadge(row.kind)), td(data.title || ''), td(timeText), td(entryDetail(row)), td(row.owner || ''), td(statusBadge(row.status, row)), tdActions(row));
+    appendHistory(tr.cells[1], row);
+    body.append(tr);
+  });
+}
+
+function td(content) {
+  const cell = document.createElement('td');
+  if (content instanceof Node) cell.append(content);
+  else cell.textContent = content;
+  return cell;
+}
+
+function tdActions(row) {
+  const cell = document.createElement('td');
+  if (row.can_archive) {
+    const archive = document.createElement('button');
+    archive.className = 'btn small ghost';
+    archive.textContent = '归档';
+    archive.onclick = async () => {
+      if (!confirm('确认归档这条' + (KIND[row.kind] || '') + '申请？归档后不再接受审批。')) return;
+      try {
+        await api('/records/' + row.id + '/archive', 'POST');
+        toast('已归档');
+        await loadRecords();
+        await loadSummary();
+      } catch (error) { toast(error.message, true); }
     };
+    cell.append(archive);
+  } else if (row.status === 'pending') {
+    const decide = document.createElement('button');
+    decide.className = 'btn small ghost';
+    decide.textContent = '处理';
+    decide.onclick = () => openDecide(row, 'approved');
+    cell.append(decide);
+  } else {
+    cell.textContent = '—';
   }
-  if(role==='admin'&&row.kind==='travel'&&['approved','rejected'].includes(row.status)){
-    const archive=document.createElement('button');archive.textContent='归档';item.append(archive);
-    archive.onclick=()=>run(async()=>{await api('/records/'+row.id+'/archive','POST');await loadRecords();},'已归档');
-  }
-  if(role==='employee'&&['active','pending'].includes(row.status)){
-    const cancel=document.createElement('button');cancel.textContent=row.kind==='schedule'?'删除日程':'撤回申请';item.append(cancel);
-    cancel.onclick=()=>run(async()=>{await api('/records/'+row.id,'DELETE');await loadRecords();},'操作成功');
-  }
- }
- if(!rows.length)$('records').textContent='暂无记录';
+  return cell;
 }
-$('refresh').onclick=()=>run(loadRecords,'记录已刷新');
-$('showLogs').onclick=()=>run(async()=>{$('logs').textContent=(await api('/admin/logs')).map(row=>row.owner+' · '+names[row.status]+' · '+row.data.skill+' · '+row.data.message).join('\n')||'暂无日志';},'日志已刷新');
-$('register').onclick=()=>{const username=prompt('新账号（3至50位英文字母、数字或下划线）');if(!username)return;const password=prompt('新密码（至少8位）');if(!password)return;run(async()=>{await api('/register','POST',{username,password});const option=new Option(username,username);$('login').elements.username.add(option);$('login').elements.username.value=username;$('login').elements.password.value=password;},'注册成功，请登录');};
-const cacheButton=document.createElement('button');cacheButton.textContent='查看缓存统计';$('logSection').append(cacheButton);
-cacheButton.onclick=()=>run(async()=>{$('logs').textContent=JSON.stringify(await api('/admin/cache'),null,2);},'缓存统计已刷新');
-$('login').elements.username.value='admin';$('login').elements.password.value='OfficeDemo2';$('entry').closest('section').hidden=true;</script></html>
+
+function kindBadge(kind) {
+  const el = document.createElement('span'); el.className = 'kind'; el.textContent = KIND[kind] || kind; return el;
+}
+function statusBadge(status, row) {
+  const el = document.createElement('span');
+  el.className = 'badge ' + (status === 'pending' ? 'b-pending' : status === 'approved' || status === 'active' ? 'b-approved' : status === 'rejected' ? 'b-rejected' : 'b-other');
+  el.textContent = row ? recordStatus(row) : (STATUS[status] || status);
+  return el;
+}
+
+function openDecide(row, status) {
+  state.decide = {row, status};
+  $('decideTitle').textContent = (status === 'approved' ? '通过' : '驳回') + ' · ' + (KIND[row.kind] || '') + ' #' + row.id;
+  $('decideSub').textContent = (row.data && row.data.title) || '';
+  $('decideRemark').value = status === 'approved' ? '同意，请按时间安排执行' : '请补充说明后重新提交';
+  $('decideMask').hidden = false;
+  $('decideRemark').focus();
+}
+
+$('cancelDecide').onclick = () => { $('decideMask').hidden = true; };
+$('submitDecide').onclick = async () => {
+  if (!state.decide) return;
+  const button = $('submitDecide');
+  button.disabled = true;
+  try {
+    await api('/records/' + state.decide.row.id, 'PATCH', {status: state.decide.status, remark: $('decideRemark').value.trim()});
+    $('decideMask').hidden = true;
+    toast(state.decide.status === 'approved' ? '已通过' : '已驳回');
+    await loadRecords();
+    await loadSummary();
+  } catch (error) {
+    toast(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+};
+
+['filterKind', 'filterStatus'].forEach(id => { $(id).onchange = renderRecords; });
+$('filterText').oninput = renderRecords;
+$('refreshRecords').onclick = async () => { await loadRecords(); toast('记录已刷新'); };
+
+async function loadRooms() {
+  try {
+    const rows = await api('/admin/rooms');
+    state.rooms = Array.isArray(rows) ? rows : [];
+    const body = $('roomBody');
+    body.replaceChildren();
+    state.rooms.forEach(room => {
+      const tr = document.createElement('tr');
+      tr.className = 'roomrow';
+      tr.append(td(room.name));
+      const capacityCell = document.createElement('td');
+      const input = document.createElement('input');
+      input.type = 'number'; input.min = '1'; input.max = '1000'; input.value = room.capacity;
+      capacityCell.append(input);
+      tr.append(capacityCell);
+      const enabledCell = document.createElement('td');
+      const box = document.createElement('input'); box.type = 'checkbox'; box.checked = !!room.enabled;
+      enabledCell.append(box, document.createTextNode(room.enabled ? ' 启用' : ' 维护中'));
+      box.onchange = () => { enabledCell.lastChild.textContent = box.checked ? ' 启用' : ' 维护中'; };
+      tr.append(enabledCell);
+      const actionCell = document.createElement('td');
+      const save = document.createElement('button');
+      save.className = 'btn small';
+      save.textContent = '保存';
+      save.onclick = async () => {
+        const capacity = Number(input.value);
+        if (!Number.isInteger(capacity) || capacity < 1 || capacity > 1000) { toast('容量需为 1 至 1000 的整数', true); return; }
+        save.disabled = true;
+        try {
+          const result = await api('/admin/rooms/' + encodeURIComponent(room.name), 'PUT', {capacity, enabled: box.checked});
+          toast(result.cacheInvalidated ? '已保存，Redis 缓存已失效' : '已保存，但 Redis 失效失败，请检查缓存服务');
+          await loadRooms();
+          await loadSummary();
+        } catch (error) {
+          toast(error.message, true);
+        } finally {
+          save.disabled = false;
+        }
+      };
+      actionCell.append(save);
+      tr.append(actionCell);
+      body.append(tr);
+    });
+    $('roomNote').textContent = '共 ' + state.rooms.length + ' 间会议室。保存成功后，两层目录缓存同步失效。';
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+async function loadVehicles() {
+  try {
+    const rows = await api('/admin/vehicles');
+    state.vehicles = Array.isArray(rows) ? rows : [];
+    const body = $('vehicleBody');
+    body.replaceChildren();
+    state.vehicles.forEach(vehicle => {
+      const tr = document.createElement('tr');
+      tr.className = 'vehicle-row';
+      tr.append(td(vehicle.plate));
+      const enabledCell = document.createElement('td');
+      const box = document.createElement('input'); box.type = 'checkbox'; box.checked = !!vehicle.enabled;
+      enabledCell.append(box, document.createTextNode(vehicle.enabled ? ' 启用' : ' 维护中'));
+      box.onchange = () => { enabledCell.lastChild.textContent = box.checked ? ' 启用' : ' 维护中'; };
+      tr.append(enabledCell);
+      const actionCell = document.createElement('td');
+      const save = document.createElement('button');
+      save.className = 'btn small';
+      save.textContent = '保存';
+      save.onclick = async () => {
+        save.disabled = true;
+        try {
+          const result = await api('/admin/vehicles/' + encodeURIComponent(vehicle.plate), 'PUT', {enabled: box.checked});
+          toast(result.cacheInvalidated ? '已保存' : '已保存，缓存暂不可用，目录将回源读取');
+          await loadVehicles();
+        } catch (error) {
+          toast(error.message, true);
+        } finally {
+          save.disabled = false;
+        }
+      };
+      actionCell.append(save);
+      tr.append(actionCell);
+      body.append(tr);
+    });
+    $('vehicleNote').textContent = '共 ' + state.vehicles.length + ' 辆车。保存后重新读取即可获取新目录。';
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+async function loadLogs() {
+  try {
+    const rows = await api('/admin/logs');
+    const body = $('logBody');
+    body.replaceChildren();
+    $('logEmpty').hidden = rows.length > 0;
+    rows.forEach(row => {
+      const data = row.data || {};
+      const tr = document.createElement('tr');
+      tr.append(td(row.owner || ''), td(MODE[row.status] || row.status || ''), td(data.skill || ''), td(data.message || ''), td((data.time || '').replace('T',' ').slice(0,19)));
+      body.append(tr);
+    });
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+async function loadCache() {
+  try {
+    const data = await api('/admin/cache');
+    const labels = {local_hit:'本地命中', redis_hit:'Redis 命中', database_read:'数据库回源', redis_failure:'Redis 故障', update_invalidation:'更新失效'};
+    const wrap = $('cacheCards');
+    wrap.replaceChildren();
+    Object.keys(data).forEach(key => {
+      const card = document.createElement('div');
+      card.className = 'stat';
+      const k = document.createElement('div'); k.className = 'k'; k.textContent = labels[key] || key;
+      const v = document.createElement('div'); v.className = 'v' + (key === 'redis_failure' && data[key] ? ' warn' : '');
+      v.textContent = data[key];
+      const n = document.createElement('div'); n.className = 'n'; n.textContent = key;
+      card.append(k, v, n);
+      wrap.append(card);
+    });
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+$('refreshLogs').onclick = async () => { await loadLogs(); toast('日志已刷新'); };
+
+(async function start() {
+  const token = sessionStorage.getItem('zx.admin.token');
+  if (!token) return;
+  state.token = token;
+  try {
+    await api('/admin/summary');
+    $('loginView').hidden = true;
+    $('app').hidden = false;
+    $('whoami').textContent = 'admin';
+    await refreshAll();
+  } catch (error) {
+    logout();
+  }
+})();
+</script>
+<script src="/catalog_editor.js"></script>
+</body>
+</html>
